@@ -1,12 +1,10 @@
-# FOSDEM Companion
+# GLT Companion
 
-Advanced native Android schedule browser application for the [FOSDEM](http://fosdem.org/) conference in Brussels, Belgium.
+This is the schedule browser for the "[Grazer Linuxtage](https://linuxtage.at)" conference in Graz, Austria. 
 
-This is a new implementation of the [legacy FOSDEM app](https://github.com/rkallensee/fosdem-android/). The code has been rewritten from scratch and the features have been extended. It uses loaders and fragments extensively and is backward compatible up to Android 2.1 thanks to the support library.
+It's a fork of [FOSDEM companion](https://github.com/cbeyls/fosdem-companion-android) by [Christophe Beyls](https://github.com/cbeyls).
 
-To get more information and install the app, look at the [Google Play Store](https://play.google.com/store/apps/details?id=be.digitalia.fosdem) page.
-
-The name FOSDEM and the gear logo are registered trademarks of FOSDEM VZW. Used with permission.
+You can install the app from the [Google Play Store](https://play.google.com/store/apps/details?id=at.linuxtage.glt) or directly from the [GLT website](https://linuxtage.at/downloads/app).
 
 ## How to build
 
@@ -31,3 +29,4 @@ The result apk file will be placed in ```app/build/outputs/apk/```.
 ## Contributors
 
 * Christophe Beyls
+* Florian Klien
