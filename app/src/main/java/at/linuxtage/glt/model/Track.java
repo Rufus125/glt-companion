@@ -11,9 +11,11 @@ public class Track implements Parcelable {
 	public static enum Type {
 		other(R.string.other),
 		keynote(R.string.keynote),
+        workshop(R.string.workshop),
 		maintrack(R.string.main_track),
+        meeting(R.string.meeting),
 		devroom(R.string.developer_room),
-		lightningtalk(R.string.lightning_talk),
+		lightning_talk(R.string.lightning_talk),
 		certification(R.string.certification_exam);
 
 		private final int nameResId;
