@@ -1,6 +1,6 @@
 package at.linuxtage.glt.model;
 
-import at.linuxtage.glt.api.FOSDEMUrls;
+import at.linuxtage.glt.api.GLTUrls;
 import at.linuxtage.glt.db.DatabaseManager;
 import at.linuxtage.glt.utils.StringUtils;
 import android.os.Parcel;
@@ -31,7 +31,7 @@ public class Person implements Parcelable {
 	}
 
 	public String getUrl() {
-		return FOSDEMUrls.getPerson(StringUtils.toSlug(name), DatabaseManager.getInstance().getYear());
+		return GLTUrls.getPerson(String.valueOf(id), DatabaseManager.getInstance().getYear());
 	}
 
 	@Override

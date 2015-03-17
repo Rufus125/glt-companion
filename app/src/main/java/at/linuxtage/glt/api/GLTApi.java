@@ -18,7 +18,7 @@ import at.linuxtage.glt.utils.HttpUtils;
  * @author Christophe Beyls
  * 
  */
-public class FOSDEMApi {
+public class GLTApi {
 
 	// Local broadcasts parameters
 	public static final String ACTION_DOWNLOAD_SCHEDULE_PROGRESS = "at.linuxtage.glt.action.DOWNLOAD_SCHEDULE_PROGRESS";
@@ -47,7 +47,7 @@ public class FOSDEMApi {
 			DatabaseManager dbManager = DatabaseManager.getInstance();
 			HttpUtils.HttpResult httpResult = HttpUtils.get(
 					context,
-					FOSDEMUrls.getSchedule(),
+					GLTUrls.getSchedule(DatabaseManager.getInstance().getYear()),
 					dbManager.getLastModifiedTag(),
 					ACTION_DOWNLOAD_SCHEDULE_PROGRESS,
 					EXTRA_PROGRESS);

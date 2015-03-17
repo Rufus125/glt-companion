@@ -7,7 +7,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
 
-import at.linuxtage.glt.api.FOSDEMUrls;
+import at.linuxtage.glt.api.GLTUrls;
 import at.linuxtage.glt.db.DatabaseManager;
 
 public class Event implements Parcelable {
@@ -94,7 +94,7 @@ public class Event implements Parcelable {
 	}
 
 	public String getUrl() {
-		return FOSDEMUrls.getEvent(slug, DatabaseManager.getInstance().getYear());
+		return GLTUrls.getEvent(String.valueOf(id), DatabaseManager.getInstance().getYear());
 	}
 
 	public String getTitle() {

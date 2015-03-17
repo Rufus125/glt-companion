@@ -55,7 +55,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import at.linuxtage.glt.R;
-import at.linuxtage.glt.api.FOSDEMApi;
+import at.linuxtage.glt.api.GLTApi;
 import at.linuxtage.glt.db.DatabaseManager;
 import at.linuxtage.glt.fragments.BookmarksListFragment;
 import at.linuxtage.glt.fragments.LiveFragment;
@@ -130,7 +130,7 @@ public class MainActivity extends ActionBarActivity implements ListView.OnItemCl
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			progressBar.setIndeterminate(false);
-			progressBar.setProgress(intent.getIntExtra(FOSDEMApi.EXTRA_PROGRESS, 0));
+			progressBar.setProgress(intent.getIntExtra(GLTApi.EXTRA_PROGRESS, 0));
 		}
 	};
 
@@ -144,13 +144,13 @@ public class MainActivity extends ActionBarActivity implements ListView.OnItemCl
 			progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_out));
 			progressBar.setVisibility(View.GONE);
 
-			int result = intent.getIntExtra(FOSDEMApi.EXTRA_RESULT, FOSDEMApi.RESULT_ERROR);
+			int result = intent.getIntExtra(GLTApi.EXTRA_RESULT, GLTApi.RESULT_ERROR);
 			String message;
 			switch (result) {
-				case FOSDEMApi.RESULT_ERROR:
+				case GLTApi.RESULT_ERROR:
 					message = getString(R.string.schedule_loading_error);
 					break;
-				case FOSDEMApi.RESULT_UP_TO_DATE:
+				case GLTApi.RESULT_UP_TO_DATE:
 					message = getString(R.string.events_download_up_to_date);
 					break;
 				case 0:
@@ -305,8 +305,8 @@ public class MainActivity extends ActionBarActivity implements ListView.OnItemCl
 
 		// Monitor the schedule download
 		LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
-		lbm.registerReceiver(scheduleDownloadProgressReceiver, new IntentFilter(FOSDEMApi.ACTION_DOWNLOAD_SCHEDULE_PROGRESS));
-		lbm.registerReceiver(scheduleDownloadResultReceiver, new IntentFilter(FOSDEMApi.ACTION_DOWNLOAD_SCHEDULE_RESULT));
+		lbm.registerReceiver(scheduleDownloadProgressReceiver, new IntentFilter(GLTApi.ACTION_DOWNLOAD_SCHEDULE_PROGRESS));
+		lbm.registerReceiver(scheduleDownloadResultReceiver, new IntentFilter(GLTApi.ACTION_DOWNLOAD_SCHEDULE_RESULT));
 
 		// Download reminder
 		long now = System.currentTimeMillis();
@@ -427,7 +427,7 @@ public class MainActivity extends ActionBarActivity implements ListView.OnItemCl
 
 		@Override
 		protected Void doInBackground(Void... args) {
-			FOSDEMApi.downloadSchedule(appContext);
+			GLTApi.downloadSchedule(appContext);
 			return null;
 		}
 	}
