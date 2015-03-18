@@ -12,6 +12,7 @@ public class Track implements Parcelable {
 		other(R.string.other),
 		keynote(R.string.keynote),
         workshop(R.string.workshop),
+        lecture(R.string.lecture),
 		maintrack(R.string.main_track),
         meeting(R.string.meeting),
 		devroom(R.string.developer_room),
