@@ -4,7 +4,7 @@ This is the schedule browser for the "[Grazer Linuxtage](https://linuxtage.at)" 
 
 It's a fork of [FOSDEM companion](https://github.com/cbeyls/fosdem-companion-android) by [Christophe Beyls](https://github.com/cbeyls).
 
-You can install the app from the [Google Play Store](https://play.google.com/store/apps/details?id=at.linuxtage.glt) or directly from the [GLT website](https://linuxtage.at/downloads/app).
+You can install the app from the [Google Play Store](https://play.google.com/store/apps/details?id=at.linuxtage.companion) or directly from the [GLT website](https://linuxtage.at/downloads/app).
 
 ## How to build
 
