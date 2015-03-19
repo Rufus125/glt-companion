@@ -15,7 +15,7 @@
  */
 package com.viewpagerindicator;
 
-import at.linuxtage.glt.R;
+import at.linuxtage.companion.R;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;

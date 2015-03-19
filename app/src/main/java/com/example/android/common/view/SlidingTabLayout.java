@@ -37,7 +37,7 @@ import android.widget.TextView;
 
 import java.util.Locale;
 
-import at.linuxtage.glt.R;
+import at.linuxtage.companion.R;
 
 /**
  */
