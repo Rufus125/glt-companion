@@ -46,12 +46,14 @@
     <string name="other">Other</string>
     <string name="keynote">Keynote</string>
     <string name="workshop">Workshop</string>
+    <string name="exam">Certification Exam</string>
+    <string name="discussion">Discussion</string>
     <string name="meeting">Meeting</string>
     <string name="lecture">Lecture</string>
-    <string name="main_track">Main track</string>
-    <string name="developer_room">Developer room</string>
+    <!--<string name="main_track">Main track</string> -->
+    <!--<string name="developer_room">Developer room</string> -->
     <string name="lightning_talk">Lightning talk</string>
-    <string name="certification_exam">Certification Exam</string>
+    <!--<string name="certification_exam">Certification Exam</string> -->
 
     <!-- Search -->
     <string name="search_events">Search events</string>
@@ -115,11 +117,10 @@
     <string name="directions">Directions to FH Joanneum</string>
     <string name="no_data">No data available.</string>
     <string name="about">About</string>
-    <string name="about_text">Provided by <a href="http://flo.cx">Florian Klien</a>.
-\nThe source is available on <a href="https://github.com/linuxtage/glt-companion">GitHub</a>.\n
-\nBased on FOSDEM Companion, programmed by <a href="http://www.digitalia.be/">Christophe Beyls</a>.
-\n
-\nLicensed under the Apache License, version 2.0. Source available on <a href="https://github.com/cbeyls/fosdem-companion-android">GitHub</a>.
+    <string name="about_text">Adapted and provided by <a href="http://flo.cx">Florian Klien</a>.
+\nThe source is available on <a href="https://github.com/linuxtage/glt-companion">GitHub</a>.
+\nLicensed under the Apache License, version 2.0.\n
+\nBased on <a href="https://github.com/cbeyls/fosdem-companion-android">FOSDEM Companion</a>, programmed by <a href="http://www.digitalia.be/">Christophe Beyls</a>.
 \n
 \n<small>This application makes use of the following libraries:
 \n- <a href="http://developer.android.com/tools/support-library/">Android Support Library</a><i> by The Android Open Source Project</i>\n- <a href="http://viewpagerindicator.com/">ViewPagerIndicator</a><i> by Jake Wharton</i>\n- <a href="https://github.com/chrisbanes/PhotoView">PhotoView</a><i> by Chris Banes</i></small></string>

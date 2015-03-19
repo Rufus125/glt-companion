@@ -14,6 +14,7 @@
     <string name="app_name">GLT Begleiter</string>
     <string name="calendar_not_found">Keine funktionierende Kalender Applikation gefunden.</string>
     <string name="certification_exam">Zertifizierungsprüfung</string>
+    <string name="discussion">Diskussion</string>
     <string name="close_menu">Menü schließen</string>
     <string name="day_no">Tag %1$d</string>
     <string name="developer_room">Entwickler</string>
@@ -24,6 +25,7 @@
     <string name="event_not_found_error">Konnte keine Details finden. Stellen Sie sicher, dass die Datenbank am neuesten Stand ist.</string>
     <string name="events_download_empty">Keine neuen Veranstaltungen gefunden.</string>
     <string name="events_download_up_to_date">Die Datenbank ist schon am neuesten Stand</string>
+    <string name="exam">Zertifizierungsprüfung</string>
     <string name="filter">Filter</string>
     <string name="keynote">Keynote</string>
     <string name="last_update">letztes Datenbankupdate: %1$s</string>
@@ -72,6 +74,7 @@
     <string name="update_events_db">Datenbank auffrischen</string>
     <string name="workshop">Workshop</string>
 
+    <!-- Others -->
     <string-array name="settings_notifications_delay_entries">
         <item>5 Minuten</item>
         <item>10 Minuten</item>

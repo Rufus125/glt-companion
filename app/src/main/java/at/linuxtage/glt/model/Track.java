@@ -12,12 +12,14 @@ public class Track implements Parcelable {
 		other(R.string.other),
 		keynote(R.string.keynote),
         workshop(R.string.workshop),
+        discussion(R.string.discussion),
         lecture(R.string.lecture),
-		maintrack(R.string.main_track),
         meeting(R.string.meeting),
-		devroom(R.string.developer_room),
-		lightning_talk(R.string.lightning_talk),
-		certification(R.string.certification_exam);
+        lightning_talk(R.string.lightning_talk),
+        //devroom(R.string.developer_room),
+        //maintrack(R.string.main_track),
+        // certification(R.string.certification_exam),
+        exam(R.string.exam);
 
 		private final int nameResId;
 

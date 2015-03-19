@@ -11,7 +11,7 @@ import at.linuxtage.glt.utils.DateUtils;
 
 public class Day implements Parcelable {
 
-	private static final DateFormat DAY_DATE_FORMAT = DateUtils.withBelgiumTimeZone(new SimpleDateFormat("EEEE", Locale.US));
+	private static final DateFormat DAY_DATE_FORMAT = DateUtils.withBelgiumTimeZone(new SimpleDateFormat("EEEE", Locale.getDefault()));
 
 	private int index;
 	private Date date;
@@ -36,7 +36,7 @@ public class Day implements Parcelable {
 	}
 
 	public String getName() {
-		return String.format(Locale.US, "Day %1$d (%2$s)", index, DAY_DATE_FORMAT.format(date));
+		return String.format(Locale.getDefault(), "%1$s", DAY_DATE_FORMAT.format(date));
 	}
 
 	public String getShortName() {
