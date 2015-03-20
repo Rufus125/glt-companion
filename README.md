@@ -6,6 +6,8 @@ It's a fork of [FOSDEM companion](https://github.com/cbeyls/fosdem-companion-and
 
 You can install the app from the [Google Play Store](https://play.google.com/store/apps/details?id=at.linuxtage.companion) or directly from the [GLT website](https://linuxtage.at/downloads/app).
 
+Donations to Grazer Linuxtage are possible via Bitcoin: [1GLTBBirbj8GZ8uY1gwovZ1QEMjfWu3rWT](bitcoin:1GLTBBirbj8GZ8uY1gwovZ1QEMjfWu3rWT)
+
 ## How to build
 
 All dependencies are defined in ```app/build.gradle```. Import the project in Android Studio or use Gradle in command line:
