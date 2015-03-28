@@ -39,12 +39,12 @@
     <string name="more_info">Mehr Information</string>
     <string name="never">Nie</string>
     <string name="next">Demnächst</string>
-    <string name="next_empty">Hier werden die nächsten Veranstaltungen während der GLT angezeigt.</string>
+    <string name="next_empty">Während der GLT werden hier Veranstaltungen der nächsten 30 Minuten angezeigt.</string>
     <string name="no_bookmark">Keine Lesezeichen.</string>
     <string name="no_data">Keine Daten vorhanden.</string>
     <string name="no_search_result">Keine Treffer.</string>
     <string name="now">Jetzt</string>
-    <string name="now_empty">Hier werden die laufenden Veranstaltungen während der GLT angezeigt.</string>
+    <string name="now_empty">Hier werden gerade laufende Veranstaltungen während der GLT angezeigt.</string>
     <string name="other">Anderes</string>
     <string name="related_links_header">Weiterführende Verweise</string>
     <string name="remove_bookmark">Lesezeichen löschen</string>
