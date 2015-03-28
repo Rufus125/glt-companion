@@ -11,7 +11,7 @@ import at.linuxtage.companion.utils.DateUtils;
 
 public class Day implements Parcelable {
 
-	private static final DateFormat DAY_DATE_FORMAT = DateUtils.withBelgiumTimeZone(new SimpleDateFormat("EEEE", Locale.getDefault()));
+	private static final DateFormat DAY_DATE_FORMAT = DateUtils.withBelgiumTimeZone(new SimpleDateFormat("d.M. (EEEE)", Locale.getDefault()));
 
 	private int index;
 	private Date date;
