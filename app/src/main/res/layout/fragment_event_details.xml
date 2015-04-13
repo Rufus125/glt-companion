@@ -21,7 +21,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textIsSelectable="true"
-                tools:text="Welcome to FOSDEM"/>
+                tools:text="Welcome to GLT"/>
 
             <TextView
                 android:id="@+id/subtitle"
@@ -37,7 +37,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                tools:text="FOSDEM Staff"/>
+                tools:text="GLT Staff"/>
 
             <View
                 style="@style/SeparatorLine"
@@ -66,7 +66,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableLeft="@drawable/ic_place_grey600_18dp"
-                tools:text="Janson (Building J)"/>
+                tools:text="HS16"/>
 
         </LinearLayout>
 
@@ -78,7 +78,7 @@
             android:background="@color/translucent_grey"
             android:padding="@dimen/content_margin"
             android:textIsSelectable="true"
-            tools:text="FOSDEM welcome and opening talk."/>
+            tools:text="GLT welcome and opening talk."/>
 
         <TextView
             android:id="@+id/description"
@@ -87,7 +87,7 @@
             android:layout_height="wrap_content"
             android:padding="@dimen/content_margin"
             android:textIsSelectable="true"
-            tools:text="Welcome to FOSDEM 2015!"/>
+            tools:text="Welcome to GLT 2015!"/>
 
         <LinearLayout
             android:id="@+id/links_container"

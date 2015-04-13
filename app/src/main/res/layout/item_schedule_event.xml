@@ -26,7 +26,7 @@
         android:padding="@dimen/list_item_padding"
         android:textColor="?android:textColorPrimary"
         android:textSize="@dimen/list_item_small_text_size"
-        tools:text="Welcome to FOSDEM 2015\nFOSDEM Staff"
+        tools:text="Welcome to GLT 2015\nGLT Staff"
         tools:textSize="@dimen/list_item_medium_text_size"
         tools:textStyle="bold"/>
 

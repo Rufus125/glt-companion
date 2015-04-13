@@ -15,7 +15,7 @@
         android:textColor="?android:textColorPrimary"
         android:textSize="@dimen/list_item_small_text_size"
         android:textStyle="bold"
-        tools:text="Welcome to FOSDEM 2015\nFOSDEM Staff"
+        tools:text="Welcome to GLT 2015\nGLT Staff"
         tools:textSize="@dimen/list_item_medium_text_size"/>
 
     <TextView
@@ -33,6 +33,6 @@
         android:layout_height="wrap_content"
         android:textColor="?android:textColorPrimary"
         android:textSize="@dimen/list_item_small_text_size"
-        tools:text="Saturday, 09:30 - 09:55 | Janson"/>
+        tools:text="Saturday, 09:30 - 09:55 | HS16"/>
 
 </LinearLayout>
