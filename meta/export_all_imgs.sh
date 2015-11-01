@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in GrazAP_*svg; do 
+for i in GrazAP_gap*svg; do 
 n=${i/svg/png}; n=${n/GrazAP/room}; echo "$i --> $n"; 
 inkscape -e $n -C -w 700 $i
 done
