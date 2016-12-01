@@ -13,9 +13,8 @@ import at.linuxtage.companion.db.DatabaseManager;
 
 /**
  * Context menu for the bookmarks list items, available for API 11+ only.
- * 
+ *
  * @author Christophe Beyls
- * 
  */
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class BookmarksMultiChoiceModeListener implements MultiChoiceModeListener {
@@ -28,13 +27,18 @@ public class BookmarksMultiChoiceModeListener implements MultiChoiceModeListener
 		listView.setMultiChoiceModeListener(listener);
 	}
 
+	public static void unregister(AbsListView listView) {
+		// Will close the ActionMode if open
+		listView.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
+	}
+
 	private BookmarksMultiChoiceModeListener(AbsListView listView) {
 		this.listView = listView;
 	}
 
 	@Override
 	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-		updateSelectedCountDisplay(mode);
+		mode.getMenuInflater().inflate(R.menu.action_mode_bookmarks, menu);
 		return true;
 	}
 
@@ -45,18 +49,18 @@ public class BookmarksMultiChoiceModeListener implements MultiChoiceModeListener
 
 	@Override
 	public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-		mode.getMenuInflater().inflate(R.menu.action_mode_bookmarks, menu);
+		updateSelectedCountDisplay(mode);
 		return true;
 	}
 
 	@Override
 	public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.delete:
-			// Remove multiple bookmarks at once
-			new RemoveBookmarksAsyncTask().execute(listView.getCheckedItemIds());
-			mode.finish();
-			return true;
+			case R.id.delete:
+				// Remove multiple bookmarks at once
+				new RemoveBookmarksAsyncTask().execute(listView.getCheckedItemIds());
+				mode.finish();
+				return true;
 		}
 		return false;
 	}
@@ -70,7 +74,7 @@ public class BookmarksMultiChoiceModeListener implements MultiChoiceModeListener
 	public void onDestroyActionMode(ActionMode mode) {
 	}
 
-	private static class RemoveBookmarksAsyncTask extends AsyncTask<long[], Void, Void> {
+	static class RemoveBookmarksAsyncTask extends AsyncTask<long[], Void, Void> {
 
 		@Override
 		protected Void doInBackground(long[]... params) {

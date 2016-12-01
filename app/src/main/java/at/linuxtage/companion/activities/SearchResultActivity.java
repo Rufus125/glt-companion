@@ -7,8 +7,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,7 +16,7 @@ import at.linuxtage.companion.R;
 import at.linuxtage.companion.fragments.MessageDialogFragment;
 import at.linuxtage.companion.fragments.SearchResultListFragment;
 
-public class SearchResultActivity extends ActionBarActivity {
+public class SearchResultActivity extends AppCompatActivity {
 
 	public static final int MIN_SEARCH_LENGTH = 3;
 
@@ -33,9 +32,7 @@ public class SearchResultActivity extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.content);
 
-		ActionBar bar = getSupportActionBar();
-		bar.setDisplayHomeAsUpEnabled(true);
-		bar.setTitle(R.string.search_events);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 		if (savedInstanceState == null) {
 			handleIntent(getIntent(), false);
@@ -125,17 +122,17 @@ public class SearchResultActivity extends ActionBarActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case android.R.id.home:
-			finish();
-			return true;
-		case R.id.search:
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
-				return false;
-			} else {
-				// Legacy search mode for Eclair
-				onSearchRequested();
+			case android.R.id.home:
+				finish();
 				return true;
-			}
+			case R.id.search:
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
+					return false;
+				} else {
+					// Legacy search mode for Eclair
+					onSearchRequested();
+					return true;
+				}
 		}
 		return false;
 	}

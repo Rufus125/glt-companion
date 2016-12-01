@@ -3,7 +3,7 @@ package at.linuxtage.companion.activities;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -12,7 +12,7 @@ import at.linuxtage.companion.R;
 import at.linuxtage.companion.fragments.PersonInfoListFragment;
 import at.linuxtage.companion.model.Person;
 
-public class PersonInfoActivity extends ActionBarActivity {
+public class PersonInfoActivity extends AppCompatActivity {
 
 	public static final String EXTRA_PERSON = "person";
 
@@ -28,6 +28,7 @@ public class PersonInfoActivity extends ActionBarActivity {
 		bar.setDisplayHomeAsUpEnabled(true);
 		bar.setDisplayShowTitleEnabled(false);
 		((TextView) findViewById(R.id.title)).setText(person.getName());
+		setTitle(person.getName());
 
 		if (savedInstanceState == null) {
 			Fragment f = PersonInfoListFragment.newInstance(person);

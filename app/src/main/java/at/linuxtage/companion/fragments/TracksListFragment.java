@@ -111,7 +111,7 @@ public class TracksListFragment extends SmoothListFragment implements LoaderCall
 
 		@Override
 		public View newView(Context context, Cursor cursor, ViewGroup parent) {
-			View view = inflater.inflate(android.R.layout.simple_list_item_2, parent, false);
+			View view = inflater.inflate(R.layout.simple_list_item_2_material, parent, false);
 
 			ViewHolder holder = new ViewHolder();
 			holder.name = (TextView) view.findViewById(android.R.id.text1);
@@ -129,7 +129,7 @@ public class TracksListFragment extends SmoothListFragment implements LoaderCall
 			holder.type.setText(holder.track.getType().getNameResId());
 		}
 
-		private static class ViewHolder {
+		static class ViewHolder {
 			TextView name;
 			TextView type;
 			Track track;

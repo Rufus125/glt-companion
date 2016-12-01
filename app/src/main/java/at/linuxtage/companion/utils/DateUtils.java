@@ -1,5 +1,6 @@
 package at.linuxtage.companion.utils;
 
+import android.content.Context;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -22,5 +23,8 @@ public class DateUtils {
 
 	public static DateFormat getTimeDateFormat() {
 		return TIME_DATE_FORMAT;
+	}
+	public static DateFormat getTimeDateFormat(Context context) {
+		return withAustriaTimeZone(android.text.format.DateFormat.getTimeFormat(context));
 	}
 }

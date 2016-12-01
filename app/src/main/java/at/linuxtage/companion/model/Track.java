@@ -8,7 +8,7 @@ import at.linuxtage.companion.R;
 
 public class Track implements Parcelable {
 
-	public static enum Type {
+	public enum Type {
 		other(R.string.other),
 		keynote(R.string.keynote),
         workshop(R.string.workshop),
@@ -23,10 +23,11 @@ public class Track implements Parcelable {
 
 		private final int nameResId;
 
-		private Type(@StringRes int nameResId) {
+		Type(@StringRes int nameResId) {
 			this.nameResId = nameResId;
 		}
 
+		@StringRes
 		public int getNameResId() {
 			return nameResId;
 		}
@@ -104,7 +105,7 @@ public class Track implements Parcelable {
 		}
 	};
 
-	private Track(Parcel in) {
+	Track(Parcel in) {
 		name = in.readString();
 		type = Type.values()[in.readInt()];
 	}

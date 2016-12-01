@@ -57,7 +57,5 @@ public class MapFragment extends Fragment {
 		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
 
 		startActivity(intent);
-
-
-    }
+	}
 }

@@ -1,12 +1,12 @@
 package at.linuxtage.companion.fragments;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.widget.ImageView;
 import at.linuxtage.companion.R;
 
@@ -30,8 +30,13 @@ public class RoomImageDialogFragment extends DialogFragment {
 
 		ImageView imageView = new ImageView(getActivity());
 		imageView.setImageResource(args.getInt("imageResId"));
+		imageView.setContentDescription(getString(R.string.room_map));
+		int padding = getResources().getDimensionPixelSize(R.dimen.content_margin);
+		imageView.setPadding(padding, padding, padding, padding);
 
-		Dialog dialog = new AlertDialog.Builder(getActivity()).setTitle(args.getString("roomName")).setView(imageView).create();
+		Dialog dialog = new AlertDialog.Builder(getActivity())
+				.setTitle(args.getString("roomName"))
+				.setView(imageView).create();
 		dialog.getWindow().getAttributes().windowAnimations = R.style.RoomImageDialogAnimations;
 		return dialog;
 	}

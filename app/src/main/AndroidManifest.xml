@@ -89,7 +89,7 @@
             android:name="at.linuxtage.companion.activities.RoomImageDialogActivity"
             android:excludeFromRecents="true"
             android:taskAffinity=""
-            android:theme="@style/DialogTheme"/>
+            android:theme="@style/AlertDialogTheme"/>
         <activity
             android:name="at.linuxtage.companion.activities.SettingsActivity"
             android:label="@string/settings"/>

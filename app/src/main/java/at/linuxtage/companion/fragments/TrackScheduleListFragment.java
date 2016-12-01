@@ -1,23 +1,19 @@
 package at.linuxtage.companion.fragments;
 
-import java.text.DateFormat;
-
-import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.database.Cursor;
-import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
-import android.text.Spannable;
-import android.text.SpannableString;
+import android.support.v4.widget.TextViewCompat;
+import android.support.v7.widget.AppCompatDrawableManager;
 import android.text.TextUtils;
-import android.text.style.AbsoluteSizeSpan;
-import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +26,8 @@ import at.linuxtage.companion.model.Day;
 import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.model.Track;
 import at.linuxtage.companion.utils.DateUtils;
+
+import java.text.DateFormat;
 
 public class TrackScheduleListFragment extends SmoothListFragment implements Handler.Callback, LoaderCallbacks<Cursor> {
 
@@ -95,10 +93,10 @@ public class TrackScheduleListFragment extends SmoothListFragment implements Han
 	}
 
 	@Override
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
-		if (activity instanceof Callbacks) {
-			listener = (Callbacks) activity;
+	public void onAttach(Context context) {
+		super.onAttach(context);
+		if (context instanceof Callbacks) {
+			listener = (Callbacks) context;
 		}
 	}
 
@@ -158,10 +156,10 @@ public class TrackScheduleListFragment extends SmoothListFragment implements Han
 	@Override
 	public boolean handleMessage(Message msg) {
 		switch (msg.what) {
-		case REFRESH_TIME_WHAT:
-			adapter.setCurrentTime(System.currentTimeMillis());
-			handler.sendEmptyMessageDelayed(REFRESH_TIME_WHAT, REFRESH_TIME_INTERVAL);
-			return true;
+			case REFRESH_TIME_WHAT:
+				adapter.setCurrentTime(System.currentTimeMillis());
+				handler.sendEmptyMessageDelayed(REFRESH_TIME_WHAT, REFRESH_TIME_INTERVAL);
+				return true;
 		}
 		return false;
 	}
@@ -190,7 +188,7 @@ public class TrackScheduleListFragment extends SmoothListFragment implements Han
 
 				// Ensure the current selection is visible
 				if (checkedPosition != ListView.INVALID_POSITION) {
-					setSelection(checkedPosition);
+					getListView().setSelection(checkedPosition);
 				}
 				// Notify the parent of the current selection to synchronize its state
 				notifyEventSelected(checkedPosition);
@@ -198,7 +196,7 @@ public class TrackScheduleListFragment extends SmoothListFragment implements Han
 			} else if (!isListAlreadyShown) {
 				int position = getDefaultPosition();
 				if (position != ListView.INVALID_POSITION) {
-					setSelection(position);
+					getListView().setSelection(position);
 				}
 			}
 			isListAlreadyShown = true;
@@ -239,25 +237,25 @@ public class TrackScheduleListFragment extends SmoothListFragment implements Han
 
 	private static class TrackScheduleAdapter extends CursorAdapter {
 
-		private static final DateFormat TIME_DATE_FORMAT = DateUtils.getTimeDateFormat();
-
 		private final LayoutInflater inflater;
+		private final DateFormat timeDateFormat;
 		private final int timeBackgroundColor;
 		private final int timeForegroundColor;
 		private final int timeRunningBackgroundColor;
 		private final int timeRunningForegroundColor;
-		private final int titleTextSize;
 		private long currentTime = -1L;
 
 		public TrackScheduleAdapter(Context context) {
 			super(context, null, 0);
 			inflater = LayoutInflater.from(context);
-			Resources res = context.getResources();
-			timeBackgroundColor = res.getColor(R.color.schedule_time_background);
-			timeForegroundColor = res.getColor(R.color.schedule_time_foreground);
-			timeRunningBackgroundColor = res.getColor(R.color.schedule_time_running_background);
-			timeRunningForegroundColor = res.getColor(R.color.schedule_time_running_foreground);
-			titleTextSize = res.getDimensionPixelSize(R.dimen.list_item_title_text_size);
+			timeDateFormat = DateUtils.getTimeDateFormat(context);
+			timeBackgroundColor = ContextCompat.getColor(context, R.color.schedule_time_background);
+			timeRunningBackgroundColor = ContextCompat.getColor(context, R.color.schedule_time_running_background);
+
+			TypedArray a = context.getTheme().obtainStyledAttributes(R.styleable.PrimaryTextColors);
+			timeForegroundColor = a.getColor(R.styleable.PrimaryTextColors_android_textColorPrimary, 0);
+			timeRunningForegroundColor = a.getColor(R.styleable.PrimaryTextColors_android_textColorPrimaryInverse, 0);
+			a.recycle();
 		}
 
 		public void setCurrentTime(long time) {
@@ -278,9 +276,9 @@ public class TrackScheduleListFragment extends SmoothListFragment implements Han
 
 			ViewHolder holder = new ViewHolder();
 			holder.time = (TextView) view.findViewById(R.id.time);
-			holder.text = (TextView) view.findViewById(R.id.text);
-			holder.titleSizeSpan = new AbsoluteSizeSpan(titleTextSize);
-			holder.boldStyleSpan = new StyleSpan(Typeface.BOLD);
+			holder.title = (TextView) view.findViewById(R.id.title);
+			holder.persons = (TextView) view.findViewById(R.id.persons);
+			holder.room = (TextView) view.findViewById(R.id.room);
 			view.setTag(holder);
 
 			return view;
@@ -292,38 +290,43 @@ public class TrackScheduleListFragment extends SmoothListFragment implements Han
 			Event event = DatabaseManager.toEvent(cursor, holder.event);
 			holder.event = event;
 
-			holder.time.setText(TIME_DATE_FORMAT.format(event.getStartTime()));
+			String formattedTime = timeDateFormat.format(event.getStartTime());
+			holder.time.setText(formattedTime);
 			if ((currentTime != -1L) && event.isRunningAtTime(currentTime)) {
 				// Contrast colors for running event
 				holder.time.setBackgroundColor(timeRunningBackgroundColor);
 				holder.time.setTextColor(timeRunningForegroundColor);
+				holder.time.setContentDescription(context.getString(R.string.in_progress_content_description, formattedTime));
 			} else {
 				// Normal colors
 				holder.time.setBackgroundColor(timeBackgroundColor);
 				holder.time.setTextColor(timeForegroundColor);
+				// Use text as content description
+				holder.time.setContentDescription(null);
 			}
 
-			SpannableString spannableString;
-			String eventTitle = event.getTitle();
+			holder.title.setText(event.getTitle());
+			boolean isBookmarked = DatabaseManager.toBookmarkStatus(cursor);
+			Drawable bookmarkDrawable = isBookmarked
+					? AppCompatDrawableManager.get().getDrawable(context, R.drawable.ic_bookmark_grey600_24dp)
+					: null;
+			TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(holder.title, null, null, bookmarkDrawable, null);
+			holder.title.setContentDescription(isBookmarked
+					? context.getString(R.string.in_bookmarks_content_description, event.getTitle())
+					: null
+			);
 			String personsSummary = event.getPersonsSummary();
-			if (TextUtils.isEmpty(personsSummary)) {
-				spannableString = new SpannableString(String.format("%1$s\n%2$s", eventTitle, event.getRoomName()));
-			} else {
-				spannableString = new SpannableString(String.format("%1$s\n%2$s\n%3$s", eventTitle, personsSummary, event.getRoomName()));
-			}
-			spannableString.setSpan(holder.titleSizeSpan, 0, eventTitle.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-			spannableString.setSpan(holder.boldStyleSpan, 0, eventTitle.length() + personsSummary.length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-			holder.text.setText(spannableString);
-			int bookmarkDrawable = DatabaseManager.toBookmarkStatus(cursor) ? R.drawable.ic_bookmark_grey600_24dp : 0;
-			holder.text.setCompoundDrawablesWithIntrinsicBounds(0, 0, bookmarkDrawable, 0);
+			holder.persons.setText(personsSummary);
+			holder.persons.setVisibility(TextUtils.isEmpty(personsSummary) ? View.GONE : View.VISIBLE);
+			holder.room.setText(event.getRoomName());
+			holder.room.setContentDescription(context.getString(R.string.room_content_description, event.getRoomName()));
 		}
 
-		private static class ViewHolder {
+		static class ViewHolder {
 			TextView time;
-			TextView text;
-			AbsoluteSizeSpan titleSizeSpan;
-			StyleSpan boldStyleSpan;
+			TextView title;
+			TextView persons;
+			TextView room;
 			Event event;
 		}
 	}

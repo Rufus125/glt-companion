@@ -1,12 +1,12 @@
 package at.linuxtage.companion.activities;
 
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.fragments.SettingsFragment;
 
-public class SettingsActivity extends ActionBarActivity {
+public class SettingsActivity extends AppCompatActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

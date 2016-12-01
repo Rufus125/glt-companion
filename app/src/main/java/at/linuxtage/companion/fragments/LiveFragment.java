@@ -10,25 +10,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import at.linuxtage.companion.R;
-
-import com.example.android.common.view.SlidingTabLayout;
-
+import at.linuxtage.companion.widgets.SlidingTabLayout;
 public class LiveFragment extends Fragment {
-
-	private LivePagerAdapter livePagerAdapter;
-
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		livePagerAdapter = new LivePagerAdapter(getChildFragmentManager(), getResources());
-	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_live, container, false);
 
 		ViewPager pager = (ViewPager) view.findViewById(R.id.pager);
-		pager.setAdapter(livePagerAdapter);
+		pager.setAdapter(new LivePagerAdapter(getChildFragmentManager(), getResources()));
 		SlidingTabLayout slidingTabs = (SlidingTabLayout) view.findViewById(R.id.sliding_tabs);
 		slidingTabs.setViewPager(pager);
 
@@ -52,10 +42,10 @@ public class LiveFragment extends Fragment {
 		@Override
 		public Fragment getItem(int position) {
 			switch (position) {
-			case 0:
-				return new NextLiveListFragment();
-			case 1:
-				return new NowLiveListFragment();
+				case 0:
+					return new NextLiveListFragment();
+				case 1:
+					return new NowLiveListFragment();
 			}
 			return null;
 		}
@@ -63,21 +53,20 @@ public class LiveFragment extends Fragment {
 		@Override
 		public CharSequence getPageTitle(int position) {
 			switch (position) {
-			case 0:
-				return resources.getString(R.string.next);
-			case 1:
-				return resources.getString(R.string.now);
+				case 0:
+					return resources.getString(R.string.next);
+				case 1:
+					return resources.getString(R.string.now);
 			}
 			return null;
 		}
 
 		@Override
-		public void setPrimaryItem(ViewGroup container, int position, Object object) {
-			super.setPrimaryItem(container, position, object);
-			// Hack to allow the non-primary fragments to start properly
-			if (object != null) {
-				((Fragment) object).setUserVisibleHint(false);
-			}
+		public Object instantiateItem(ViewGroup container, int position) {
+			// Allow the non-primary fragments to start as soon as they are visible
+			Fragment f = (Fragment) super.instantiateItem(container, position);
+			f.setUserVisibleHint(true);
+			return f;
 		}
 	}
 }
