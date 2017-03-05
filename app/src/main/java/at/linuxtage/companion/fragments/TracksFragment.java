@@ -16,6 +16,7 @@ import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.SharedPreferencesCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,12 +24,9 @@ import at.linuxtage.companion.R;
 import at.linuxtage.companion.db.DatabaseManager;
 import at.linuxtage.companion.loaders.GlobalCacheLoader;
 import at.linuxtage.companion.model.Day;
-
 import at.linuxtage.companion.widgets.SlidingTabLayout;
 
-
-
-public class TracksFragment extends Fragment implements LoaderCallbacks<List<Day>> {
+public class TracksFragment extends Fragment implements RecycledViewPoolProvider, LoaderCallbacks<List<Day>> {
 
 	static class ViewHolder {
 		View contentView;
@@ -36,6 +34,7 @@ public class TracksFragment extends Fragment implements LoaderCallbacks<List<Day
 		ViewPager pager;
 		SlidingTabLayout slidingTabs;
 		DaysAdapter daysAdapter;
+		RecyclerView.RecycledViewPool recycledViewPool;
 	}
 
 	private static final int DAYS_LOADER_ID = 1;
@@ -64,6 +63,7 @@ public class TracksFragment extends Fragment implements LoaderCallbacks<List<Day
 		holder.pager = (ViewPager) view.findViewById(R.id.pager);
 		holder.slidingTabs = (SlidingTabLayout) view.findViewById(R.id.sliding_tabs);
 		holder.daysAdapter = new DaysAdapter(getChildFragmentManager());
+		holder.recycledViewPool = new RecyclerView.RecycledViewPool();
 
 		return view;
 	}
@@ -92,6 +92,11 @@ public class TracksFragment extends Fragment implements LoaderCallbacks<List<Day
 					prefs.edit().putInt(PREF_CURRENT_PAGE, page)
 			);
 		}
+	}
+
+	@Override
+	public RecyclerView.RecycledViewPool getRecycledViewPool() {
+		return (holder == null) ? null : holder.recycledViewPool;
 	}
 
 	private static class DaysLoader extends GlobalCacheLoader<List<Day>> {

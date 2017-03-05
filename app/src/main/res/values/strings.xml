@@ -29,6 +29,8 @@
     <!-- Bookmarks -->
     <string name="filter">Filter</string>
     <string name="upcoming_only">Upcoming only</string>
+    <string name="export_bookmarks">Export bookmarks</string>
+    <string name="export_bookmarks_file_name">GLT %1$d bookmarks.ics</string>
     <string name="no_bookmark">No bookmark.</string>
     <string name="remove_bookmarks">Remove bookmarks</string>
     <string name="bookmark_conflict_content_description">%1$s\n Other bookmarks are scheduled at the same time.</string>
@@ -54,7 +56,7 @@
     <!--<string name="main_track">Main track</string> -->
     <!--<string name="developer_room">Developer room</string> -->
     <string name="lightning_talk">Lightning talk</string>
-    <!--<string name="certification_exam">Certification Exam</string> -->
+    <string name="certification_exam">Certification Exam</string>
 
     <!-- Search -->
     <string name="search_events">Search events</string>
@@ -123,6 +125,7 @@
     <!-- Others -->
     <string name="room_map">Room map</string>
     <string name="directions">Directions to FH Joanneum</string>
+    <string name="navigation">On-site navigation</string>
     <string name="no_data">No data available.</string>
     <string name="about">About</string>
     <string name="about_text">Adapted and provided by <a href="http://flo.cx">Florian Klien</a>.

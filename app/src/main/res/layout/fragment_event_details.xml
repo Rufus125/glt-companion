@@ -2,6 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/scroll_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context=".activities.EventDetailsActivity">
@@ -39,6 +40,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:saveEnabled="false"
                 tools:text="GLT Staff"/>
 
             <View
@@ -66,12 +68,12 @@
 
             <TextView
                 android:id="@+id/room"
-                style="@style/Metadata.Selectable"
+                style="@style/Metadata"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableLeft="@drawable/ic_place_grey600_18dp"
+                android:saveEnabled="false"
                 tools:text="HS16"/>
-
         </LinearLayout>
 
         <TextView
@@ -81,6 +83,7 @@
             android:layout_height="wrap_content"
             android:background="@color/translucent_grey"
             android:padding="@dimen/content_margin"
+            android:saveEnabled="false"
             android:textIsSelectable="true"
             tools:text="GLT welcome and opening talk."/>
 
@@ -90,6 +93,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="@dimen/content_margin"
+            android:saveEnabled="false"
             android:textIsSelectable="true"
             tools:text="Welcome to GLT 2015!"/>
 

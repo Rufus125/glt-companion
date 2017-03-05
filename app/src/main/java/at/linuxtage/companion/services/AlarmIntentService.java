@@ -4,9 +4,11 @@ import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -27,10 +29,11 @@ import at.linuxtage.companion.activities.EventDetailsActivity;
 import at.linuxtage.companion.activities.MainActivity;
 import at.linuxtage.companion.activities.RoomImageDialogActivity;
 import at.linuxtage.companion.db.DatabaseManager;
-import at.linuxtage.companion.fragments.SettingsFragment;
 import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.receivers.AlarmReceiver;
 import at.linuxtage.companion.utils.StringUtils;
+import at.linuxtage.companion.BuildConfig;
+import at.linuxtage.companion.activities.SettingsActivity;
 
 /**
  * A service to schedule or unschedule alarms in the background, keeping the app responsive.
@@ -39,9 +42,9 @@ import at.linuxtage.companion.utils.StringUtils;
  */
 public class AlarmIntentService extends IntentService {
 
-	public static final String ACTION_UPDATE_ALARMS = "at.linuxtage.glt.action.UPDATE_ALARMS";
+	public static final String ACTION_UPDATE_ALARMS = BuildConfig.APPLICATION_ID + ".action.UPDATE_ALARMS";
 	public static final String EXTRA_WITH_WAKE_LOCK = "with_wake_lock";
-	public static final String ACTION_DISABLE_ALARMS = "at.linuxtage.glt.action.DISABLE_ALARMS";
+	public static final String ACTION_DISABLE_ALARMS = BuildConfig.APPLICATION_ID + ".action.DISABLE_ALARMS";
 
 	private AlarmManager alarmManager;
 
@@ -63,7 +66,7 @@ public class AlarmIntentService extends IntentService {
 		Intent intent = new Intent(this, AlarmReceiver.class)
 				.setAction(AlarmReceiver.ACTION_NOTIFY_EVENT)
 				.setData(Uri.parse(String.valueOf(eventId)));
-		return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+		return PendingIntent.getBroadcast(this, 0, intent, 0);
 	}
 
 	@Override
@@ -73,29 +76,28 @@ public class AlarmIntentService extends IntentService {
 			case ACTION_UPDATE_ALARMS: {
 
 				// Create/update all alarms
-				long delay = getDelay();
-				long now = System.currentTimeMillis();
-				Cursor cursor = DatabaseManager.getInstance().getBookmarks(now);
+				final long delay = getDelay();
+				final long now = System.currentTimeMillis();
+				boolean hasAlarms = false;
+				Cursor cursor = DatabaseManager.getInstance().getBookmarks(0L);
 				try {
 					while (cursor.moveToNext()) {
 						long eventId = DatabaseManager.toEventId(cursor);
 						long notificationTime = DatabaseManager.toEventStartTimeMillis(cursor) - delay;
 						PendingIntent pi = getAlarmPendingIntent(eventId);
 						if (notificationTime < now) {
-							// Cancel pending alarms that where scheduled between now and delay, if any
+							// Cancel pending alarms that are now scheduled in the past, if any
 							alarmManager.cancel(pi);
 						} else {
 							setExactAlarm(alarmManager, AlarmManager.RTC_WAKEUP, notificationTime, pi);
+							hasAlarms = true;
 						}
 					}
+
 				} finally {
 					cursor.close();
 				}
-
-				// Release the wake lock setup by AlarmReceiver, if any
-				if (intent.getBooleanExtra(EXTRA_WITH_WAKE_LOCK, false)) {
-					AlarmReceiver.completeWakefulIntent(intent);
-				}
+				setAlarmReceiverEnabled(hasAlarms);
 
 				break;
 			}
@@ -111,6 +113,7 @@ public class AlarmIntentService extends IntentService {
 				} finally {
 					cursor.close();
 				}
+				setAlarmReceiverEnabled(false);
 
 				break;
 			}
@@ -123,6 +126,7 @@ public class AlarmIntentService extends IntentService {
 				if ((startTime == -1L) || (startTime < System.currentTimeMillis())) {
 					break;
 				}
+				setAlarmReceiverEnabled(true);
 				setExactAlarm(alarmManager, AlarmManager.RTC_WAKEUP, startTime - delay, getAlarmPendingIntent(eventId));
 
 				break;
@@ -151,7 +155,7 @@ public class AlarmIntentService extends IntentService {
 
 					int defaultFlags = Notification.DEFAULT_SOUND;
 					SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-					if (sharedPreferences.getBoolean(SettingsFragment.KEY_PREF_NOTIFICATIONS_VIBRATE, false)) {
+					if (sharedPreferences.getBoolean(SettingsActivity.KEY_PREF_NOTIFICATIONS_VIBRATE, false)) {
 						defaultFlags |= Notification.DEFAULT_VIBRATE;
 					}
 
@@ -195,7 +199,7 @@ public class AlarmIntentService extends IntentService {
 							.setCategory(NotificationCompat.CATEGORY_EVENT);
 
 					// Blink the LED with FOSDEM color if enabled in the options
-					if (sharedPreferences.getBoolean(SettingsFragment.KEY_PREF_NOTIFICATIONS_LED, false)) {
+					if (sharedPreferences.getBoolean(SettingsActivity.KEY_PREF_NOTIFICATIONS_LED, false)) {
 						notificationBuilder.setLights(notificationColor, 1000, 5000);
 					}
 
@@ -227,9 +231,13 @@ public class AlarmIntentService extends IntentService {
 					NotificationManagerCompat.from(this).notify((int) eventId, notificationBuilder.build());
 				}
 
-				AlarmReceiver.completeWakefulIntent(intent);
 				break;
 			}
+		}
+
+		// Release the wake lock setup by AlarmReceiver, if any
+		if (intent.getBooleanExtra(EXTRA_WITH_WAKE_LOCK, false)) {
+			AlarmReceiver.completeWakefulIntent(intent);
 		}
 	}
 
@@ -243,8 +251,17 @@ public class AlarmIntentService extends IntentService {
 
 	private long getDelay() {
 		String delayString = PreferenceManager.getDefaultSharedPreferences(this).getString(
-				SettingsFragment.KEY_PREF_NOTIFICATIONS_DELAY, "0");
+				SettingsActivity.KEY_PREF_NOTIFICATIONS_DELAY, "0");
 		// Convert from minutes to milliseconds
 		return Long.parseLong(delayString) * DateUtils.MINUTE_IN_MILLIS;
+	}
+
+	/**
+	 * Allows disabling the Alarm Receiver so the app is not loaded at boot when it's not necessary.
+	 */
+	private void setAlarmReceiverEnabled(boolean isEnabled) {
+		ComponentName componentName = new ComponentName(this, AlarmReceiver.class);
+		int flag = isEnabled ? PackageManager.COMPONENT_ENABLED_STATE_DEFAULT : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+		getPackageManager().setComponentEnabledSetting(componentName, flag, PackageManager.DONT_KILL_APP);
 	}
 }

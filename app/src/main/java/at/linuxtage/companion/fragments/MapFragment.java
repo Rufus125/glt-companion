@@ -1,5 +1,6 @@
 package at.linuxtage.companion.fragments;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.view.ViewGroup;
 import java.util.Locale;
 
 import at.linuxtage.companion.R;
+import at.linuxtage.companion.api.GLTUrls;
 
 public class MapFragment extends Fragment {
 
@@ -43,6 +45,9 @@ public class MapFragment extends Fragment {
 			case R.id.directions:
 				launchDirections();
 				return true;
+			case R.id.navigation:
+				launchLocalNavigation();
+				return true;
 		}
 		return false;
 	}
@@ -56,6 +61,17 @@ public class MapFragment extends Fragment {
 
 		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
 
-		startActivity(intent);
+		try {
+			startActivity(intent);
+		} catch (ActivityNotFoundException ignore) {
+		}
+	}
+
+	private void launchLocalNavigation() {
+		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(GLTUrls.getLocalNavigation()));
+		try {
+			startActivity(intent);
+		} catch (ActivityNotFoundException ignore) {
+		}
 	}
 }
