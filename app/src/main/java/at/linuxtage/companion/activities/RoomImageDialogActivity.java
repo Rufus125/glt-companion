@@ -43,14 +43,14 @@ public class RoomImageDialogActivity extends AppCompatActivity {
 				@Override
 				public boolean onMenuItemClick(MenuItem item) {
 					switch (item.getItemId()) {
-						case R.id.navigation:
+				/*		case R.id.navigation:
 							String localNavigationUrl = GLTUrls.getLocalNavigationToLocation(StringUtils.toSlug(roomName));
 							Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(localNavigationUrl));
 							try {
 								toolbar.getContext().startActivity(intent);
 							} catch (ActivityNotFoundException ignore) {
 							}
-							break;
+							break;*/
 					}
 					return false;
 				}

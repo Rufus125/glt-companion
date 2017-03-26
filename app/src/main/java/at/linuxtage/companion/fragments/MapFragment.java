@@ -45,9 +45,9 @@ public class MapFragment extends Fragment {
 			case R.id.directions:
 				launchDirections();
 				return true;
-			case R.id.navigation:
+			/*case R.id.navigation:
 				launchLocalNavigation();
-				return true;
+				return true;*/
 		}
 		return false;
 	}
