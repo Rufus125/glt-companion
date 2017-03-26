@@ -8,6 +8,7 @@ You can install the app from the [Google Play Store](https://play.google.com/sto
 
 Donations to Grazer Linuxtage are possible via Bitcoin: [1GLTBBirbj8GZ8uY1gwovZ1QEMjfWu3rWT](bitcoin:1GLTBBirbj8GZ8uY1gwovZ1QEMjfWu3rWT)
 
+
 ## How to build
 
 All dependencies are defined in ```app/build.gradle```. Import the project in Android Studio or use Gradle in command line:

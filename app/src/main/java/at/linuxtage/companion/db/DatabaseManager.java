@@ -1,15 +1,5 @@
 package at.linuxtage.companion.db;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
 import android.app.SearchManager;
 import android.content.ContentValues;
 import android.content.Context;
@@ -24,6 +14,7 @@ import android.provider.BaseColumns;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.SharedPreferencesCompat;
 import android.text.TextUtils;
+
 import at.linuxtage.companion.model.Day;
 import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.model.Link;
@@ -31,22 +22,32 @@ import at.linuxtage.companion.model.Person;
 import at.linuxtage.companion.model.Track;
 import at.linuxtage.companion.utils.DateUtils;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import at.linuxtage.companion.BuildConfig;
 /**
  * Here comes the badass SQL.
  *
  * @author Christophe Beyls
  */
 public class DatabaseManager {
-
-	public static final String ACTION_SCHEDULE_REFRESHED = "at.linuxtage.glt.action.SCHEDULE_REFRESHED";
-	public static final String ACTION_ADD_BOOKMARK = "at.linuxtage.glt.action.ADD_BOOKMARK";
+	public static final String ACTION_SCHEDULE_REFRESHED = BuildConfig.APPLICATION_ID + ".action.SCHEDULE_REFRESHED";
+	public static final String ACTION_ADD_BOOKMARK = BuildConfig.APPLICATION_ID + ".action.ADD_BOOKMARK";
 	public static final String EXTRA_EVENT_ID = "event_id";
 	public static final String EXTRA_EVENT_START_TIME = "event_start";
-	public static final String ACTION_REMOVE_BOOKMARKS = "at.linuxtage.glt.action.REMOVE_BOOKMARKS";
+	public static final String ACTION_REMOVE_BOOKMARKS = BuildConfig.APPLICATION_ID + ".action.REMOVE_BOOKMARKS";
 	public static final String EXTRA_EVENT_IDS = "event_ids";
 
-	private static final Uri URI_TRACKS = Uri.parse("sqlite://at.linuxtage.glt/tracks");
-	private static final Uri URI_EVENTS = Uri.parse("sqlite://at.linuxtage.glt/events");
+	private static final Uri URI_TRACKS = Uri.parse("sqlite://" + BuildConfig.APPLICATION_ID + "/tracks");
+	private static final Uri URI_EVENTS = Uri.parse("sqlite://" + BuildConfig.APPLICATION_ID + "/events");
 
 	private static final String DB_PREFS_FILE = "database";
 	private static final String LAST_UPDATE_TIME_PREF = "last_update_time";
@@ -54,8 +55,8 @@ public class DatabaseManager {
 
 	private static DatabaseManager instance;
 
-	private Context context;
-	private DatabaseHelper helper;
+	private final Context context;
+	private final DatabaseHelper helper;
 
 	private List<Day> cachedDays;
 	private int year = -1;

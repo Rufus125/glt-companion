@@ -20,6 +20,9 @@ public class GLTUrls {
 	//private static final String PERSON_URL_FORMAT = "https://fosdem.org/%1$d/schedule/speaker/%2$s/";
     private static final String PERSON_URL_FORMAT = "https://glt%1$d-programm.linuxtage.at/speakers/%2$s.html";
 
+	private static final String LOCAL_NAVIGATION_URL = "";
+	private static final String LOCAL_NAVIGATION_TO_ROOM_URL_FORMAT = "";
+
 	public static String getSchedule(int year) {
 		return String.format(Locale.US, SCHEDULE_URL, year-2000);
 	}
@@ -30,5 +33,14 @@ public class GLTUrls {
 
 	public static String getPerson(String slug, int year) {
 		return String.format(Locale.US, PERSON_URL_FORMAT, year-2000, slug);
+	}
+
+
+	public static String getLocalNavigation() {
+		return LOCAL_NAVIGATION_URL;
+	}
+
+	public static String getLocalNavigationToLocation(String locationSlug) {
+		return String.format(Locale.US, LOCAL_NAVIGATION_TO_ROOM_URL_FORMAT, locationSlug);
 	}
 }

@@ -4,9 +4,10 @@ import java.text.DateFormat;
 import java.util.Date;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
-import android.support.v4.widget.CursorAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.TextViewCompat;
 import android.support.v7.widget.AppCompatDrawableManager;
 import android.text.TextUtils;
@@ -14,12 +15,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.db.DatabaseManager;
 import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.utils.DateUtils;
+import at.linuxtage.companion.activities.EventDetailsActivity;
+import at.linuxtage.companion.model.Track;
+import at.linuxtage.companion.widgets.MultiChoiceHelper;
 
-public class EventsAdapter extends CursorAdapter {
+public class EventsAdapter extends RecyclerViewCursorAdapter<EventsAdapter.ViewHolder> {
 
 	protected final LayoutInflater inflater;
 	protected final DateFormat timeDateFormat;
@@ -30,7 +35,6 @@ public class EventsAdapter extends CursorAdapter {
 	}
 
 	public EventsAdapter(Context context, boolean showDay) {
-		super(context, null, 0);
 		inflater = LayoutInflater.from(context);
 		timeDateFormat = DateUtils.getTimeDateFormat(context);
 		this.showDay = showDay;
@@ -42,22 +46,19 @@ public class EventsAdapter extends CursorAdapter {
 	}
 
 	@Override
-	public View newView(Context context, Cursor cursor, ViewGroup parent) {
-		View view = inflater.inflate(R.layout.item_event, parent, false);
-
-		ViewHolder holder = new ViewHolder();
-		holder.title = (TextView) view.findViewById(R.id.title);
-		holder.persons = (TextView) view.findViewById(R.id.persons);
-		holder.trackName = (TextView) view.findViewById(R.id.track_name);
-		holder.details = (TextView) view.findViewById(R.id.details);
-		view.setTag(holder);
-
-		return view;
+	public int getItemViewType(int position) {
+		return R.layout.item_event;
 	}
 
 	@Override
-	public void bindView(View view, Context context, Cursor cursor) {
-		ViewHolder holder = (ViewHolder) view.getTag();
+	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+		View view = inflater.inflate(R.layout.item_event, parent, false);
+		return new ViewHolder(view);
+	}
+
+	@Override
+	public void onBindViewHolder(ViewHolder holder, Cursor cursor) {
+		Context context = holder.itemView.getContext();
 		Event event = DatabaseManager.toEvent(cursor, holder.event);
 		holder.event = event;
 
@@ -74,8 +75,10 @@ public class EventsAdapter extends CursorAdapter {
 		String personsSummary = event.getPersonsSummary();
 		holder.persons.setText(personsSummary);
 		holder.persons.setVisibility(TextUtils.isEmpty(personsSummary) ? View.GONE : View.VISIBLE);
-		holder.trackName.setText(event.getTrack().getName());
-		holder.trackName.setContentDescription(context.getString(R.string.track_content_description, event.getTrack().getName()));
+		Track track = event.getTrack();
+		holder.trackName.setText(track.getName());
+		holder.trackName.setTextColor(ContextCompat.getColor(holder.trackName.getContext(), track.getType().getColorResId()));
+		holder.trackName.setContentDescription(context.getString(R.string.track_content_description, track.getName()));
 
 		Date startTime = event.getStartTime();
 		Date endTime = event.getEndTime();
@@ -91,11 +94,29 @@ public class EventsAdapter extends CursorAdapter {
 		holder.details.setContentDescription(context.getString(R.string.details_content_description, details));
 	}
 
-	protected static class ViewHolder {
+	static class ViewHolder extends MultiChoiceHelper.ViewHolder implements View.OnClickListener {
 		TextView title;
 		TextView persons;
 		TextView trackName;
 		TextView details;
+
 		Event event;
+
+		public ViewHolder(View itemView) {
+			super(itemView);
+			title = (TextView) itemView.findViewById(R.id.title);
+			persons = (TextView) itemView.findViewById(R.id.persons);
+			trackName = (TextView) itemView.findViewById(R.id.track_name);
+			details = (TextView) itemView.findViewById(R.id.details);
+			setOnClickListener(this);
+		}
+
+		@Override
+		public void onClick(View view) {
+			Context context = view.getContext();
+			Intent intent = new Intent(context, EventDetailsActivity.class)
+					.putExtra(EventDetailsActivity.EXTRA_EVENT, event);
+			context.startActivity(intent);
+		}
 	}
 }

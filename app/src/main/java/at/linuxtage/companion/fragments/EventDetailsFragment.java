@@ -5,8 +5,10 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Animatable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.support.v4.app.Fragment;
@@ -14,15 +16,14 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.Loader;
-import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
+import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.method.MovementMethod;
 import android.text.style.ClickableSpan;
-import android.text.style.UnderlineSpan;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -154,15 +155,19 @@ public class EventDetailsFragment extends Fragment {
 		final int roomImageResId = getResources().getIdentifier(StringUtils.roomNameToResourceName(roomName), "drawable", getActivity().getPackageName());
 		// If the room image exists, make the room text clickable to display it
 		if (roomImageResId != 0) {
-			roomText.setSpan(new UnderlineSpan(), 0, roomText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-			textView.setOnClickListener(new View.OnClickListener() {
-
+			roomText.setSpan(new ClickableSpan() {
 				@Override
 				public void onClick(View view) {
 					RoomImageDialogFragment.newInstance(roomName, roomImageResId).show(getFragmentManager());
 				}
-			});
-			textView.setFocusable(true);
+
+				@Override
+				public void updateDrawState(TextPaint ds) {
+					super.updateDrawState(ds);
+					ds.setUnderlineText(false);
+				}
+			}, 0, roomText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			textView.setMovementMethod(linkMovementMethod);
 		}
 		textView.setText(roomText);
 		textView.setContentDescription(getString(R.string.room_content_description, roomText));
@@ -173,7 +178,7 @@ public class EventDetailsFragment extends Fragment {
 		if (TextUtils.isEmpty(text)) {
 			textView.setVisibility(View.GONE);
 		} else {
-			textView.setText(StringUtils.trimEnd(Html.fromHtml(text)));
+			textView.setText(StringUtils.parseHtml(text, getResources()));
 			textView.setMovementMethod(linkMovementMethod);
 		}
 		textView = (TextView) view.findViewById(R.id.description);
@@ -181,7 +186,7 @@ public class EventDetailsFragment extends Fragment {
 		if (TextUtils.isEmpty(text)) {
 			textView.setVisibility(View.GONE);
 		} else {
-			textView.setText(StringUtils.trimEnd(Html.fromHtml(text)));
+			textView.setText(StringUtils.parseHtml(text, getResources()));
 			textView.setMovementMethod(linkMovementMethod);
 		}
 
@@ -239,7 +244,7 @@ public class EventDetailsFragment extends Fragment {
 		if (actionButton != null) {
 			bookmarkMenuItem.setEnabled(false).setVisible(false);
 		}
-		updateOptionsMenu();
+		updateBookmarkMenuItem(false);
 	}
 
 	private Intent getShareChooserIntent() {
@@ -251,21 +256,27 @@ public class EventDetailsFragment extends Fragment {
 				.createChooserIntent();
 	}
 
-	void updateOptionsMenu() {
+	void updateBookmarkMenuItem(boolean animate) {
 		if (actionButton != null) {
 			// Action Button is used as bookmark button
 
 			if (isBookmarked == null) {
 				actionButton.setEnabled(false);
 			} else {
+				// Only animate if the button was showing a previous value
+				animate = animate && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+						&& actionButton.isEnabled();
 				actionButton.setEnabled(true);
 
 				if (isBookmarked) {
 					actionButton.setContentDescription(getString(R.string.remove_bookmark));
-					actionButton.setImageResource(R.drawable.ic_bookmark_white_24dp);
+					actionButton.setImageResource(animate ? R.drawable.avd_bookmark_add_24dp : R.drawable.ic_bookmark_white_24dp);
 				} else {
 					actionButton.setContentDescription(getString(R.string.add_bookmark));
-					actionButton.setImageResource(R.drawable.ic_bookmark_outline_white_24dp);
+					actionButton.setImageResource(animate ? R.drawable.avd_bookmark_remove_24dp : R.drawable.ic_bookmark_outline_white_24dp);
+				}
+				if (animate) {
+					((Animatable) actionButton.getDrawable()).start();
 				}
 			}
 		} else {
@@ -275,14 +286,21 @@ public class EventDetailsFragment extends Fragment {
 				if (isBookmarked == null) {
 					bookmarkMenuItem.setEnabled(false);
 				} else {
+					// Only animate if the menu item was showing a previous value
+					animate = animate && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+							&& bookmarkMenuItem.isEnabled();
 					bookmarkMenuItem.setEnabled(true);
 
 					if (isBookmarked) {
 						bookmarkMenuItem.setTitle(R.string.remove_bookmark);
-						bookmarkMenuItem.setIcon(R.drawable.ic_bookmark_white_24dp);
+						bookmarkMenuItem.setIcon(animate ? R.drawable.avd_bookmark_add_24dp : R.drawable.ic_bookmark_white_24dp);
 					} else {
 						bookmarkMenuItem.setTitle(R.string.add_bookmark);
-						bookmarkMenuItem.setIcon(R.drawable.ic_bookmark_outline_white_24dp);
+						bookmarkMenuItem.setIcon(animate ? R.drawable.avd_bookmark_remove_24dp : R.drawable.ic_bookmark_outline_white_24dp);
+					}
+					if (animate) {
+						((Animatable) bookmarkMenuItem.getIcon()).stop();
+						((Animatable) bookmarkMenuItem.getIcon()).start();
 					}
 				}
 			}
@@ -339,8 +357,7 @@ public class EventDetailsFragment extends Fragment {
 		if (TextUtils.isEmpty(description)) {
 			description = event.getDescription();
 		}
-		// Strip HTML
-		description = StringUtils.trimEnd(Html.fromHtml(description)).toString();
+		description = StringUtils.stripHtml(description);
 		// Add speaker info if available
 		if (personsCount > 0) {
 			description = String.format("%1$s: %2$s\n\n%3$s", getResources().getQuantityString(R.plurals.speakers, personsCount), event.getPersonsSummary(),
@@ -371,8 +388,10 @@ public class EventDetailsFragment extends Fragment {
 
 		@Override
 		public void onLoadFinished(Loader<Boolean> loader, Boolean data) {
-			isBookmarked = data;
-			updateOptionsMenu();
+			if (isBookmarked != data) {
+				isBookmarked = data;
+				updateBookmarkMenuItem(true);
+			}
 		}
 
 		@Override
@@ -466,6 +485,12 @@ public class EventDetailsFragment extends Fragment {
 			Intent intent = new Intent(context, PersonInfoActivity.class).putExtra(PersonInfoActivity.EXTRA_PERSON, person);
 			context.startActivity(intent);
 		}
+
+		@Override
+		public void updateDrawState(TextPaint ds) {
+			super.updateDrawState(ds);
+			ds.setUnderlineText(false);
+		}
 	}
 
 	private static class LinkClickListener implements View.OnClickListener {
@@ -478,8 +503,14 @@ public class EventDetailsFragment extends Fragment {
 
 		@Override
 		public void onClick(View v) {
-			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link.getUrl()));
-			v.getContext().startActivity(intent);
+			String url = link.getUrl();
+			if (url != null) {
+				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+				try {
+					v.getContext().startActivity(intent);
+				} catch (ActivityNotFoundException ignore) {
+				}
+			}
 		}
 	}
 }

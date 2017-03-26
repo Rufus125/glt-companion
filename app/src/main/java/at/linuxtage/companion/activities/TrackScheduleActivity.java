@@ -21,6 +21,7 @@ import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.model.Track;
 import at.linuxtage.companion.utils.NfcUtils;
 import at.linuxtage.companion.utils.NfcUtils.CreateNfcAppDataCallback;
+import at.linuxtage.companion.utils.ThemeUtils;
 
 /**
  * Track Schedule container, works in both single pane and dual pane modes.
@@ -61,6 +62,7 @@ public class TrackScheduleActivity extends AppCompatActivity
 		bar.setTitle(track.toString());
 		bar.setSubtitle(day.toString());
 		setTitle(String.format("%1$s, %2$s", track.toString(), day.toString()));
+		ThemeUtils.setActionBarTrackColor(this, track.getType());
 
 		isTabletLandscape = getResources().getBoolean(R.bool.tablet_landscape);
 
@@ -83,9 +85,7 @@ public class TrackScheduleActivity extends AppCompatActivity
 
 				Fragment eventDetailsFragment = fm.findFragmentById(R.id.event);
 				if (eventDetailsFragment != null) {
-					if (ft == null) {
-						ft = fm.beginTransaction();
-					}
+					ft = fm.beginTransaction();
 					ft.remove(eventDetailsFragment);
 				}
 

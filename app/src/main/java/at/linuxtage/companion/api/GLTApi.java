@@ -11,19 +11,19 @@ import at.linuxtage.companion.db.DatabaseManager;
 import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.parsers.EventsParser;
 import at.linuxtage.companion.utils.HttpUtils;
+import at.linuxtage.companion.BuildConfig;
 
 /**
  * Main API entry point.
- * 
+ *
  * @author Christophe Beyls
- * 
  */
 public class GLTApi {
 
 	// Local broadcasts parameters
-	public static final String ACTION_DOWNLOAD_SCHEDULE_PROGRESS = "at.linuxtage.glt.action.DOWNLOAD_SCHEDULE_PROGRESS";
+	public static final String ACTION_DOWNLOAD_SCHEDULE_PROGRESS = BuildConfig.APPLICATION_ID + ".action.DOWNLOAD_SCHEDULE_PROGRESS";
 	public static final String EXTRA_PROGRESS = "PROGRESS";
-	public static final String ACTION_DOWNLOAD_SCHEDULE_RESULT = "at.linuxtage.glt.action.DOWNLOAD_SCHEDULE_RESULT";
+	public static final String ACTION_DOWNLOAD_SCHEDULE_RESULT = BuildConfig.APPLICATION_ID + ".action.DOWNLOAD_SCHEDULE_RESULT";
 	public static final String EXTRA_RESULT = "RESULT";
 
 	public static final int RESULT_ERROR = -1;
@@ -34,7 +34,6 @@ public class GLTApi {
 	/**
 	 * Download & store the schedule to the database. Only one thread at a time will perform the actual action, the other ones will return immediately. The
 	 * result will be sent back in the form of a local broadcast with an ACTION_DOWNLOAD_SCHEDULE_RESULT action.
-	 * 
 	 */
 	public static void downloadSchedule(Context context) {
 		if (!scheduleLock.tryLock()) {

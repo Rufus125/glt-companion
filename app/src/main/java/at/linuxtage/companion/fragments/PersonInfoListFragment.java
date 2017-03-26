@@ -1,5 +1,6 @@
 package at.linuxtage.companion.fragments;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -7,22 +8,23 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.support.v7.widget.ConcatAdapter;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ListView;
+import android.view.ViewGroup;
 
 import at.linuxtage.companion.R;
-import at.linuxtage.companion.activities.EventDetailsActivity;
 import at.linuxtage.companion.adapters.EventsAdapter;
 import at.linuxtage.companion.db.DatabaseManager;
 import at.linuxtage.companion.loaders.SimpleCursorLoader;
-import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.model.Person;
 
-public class PersonInfoListFragment extends SmoothListFragment implements LoaderCallbacks<Cursor> {
+public class PersonInfoListFragment extends RecyclerViewFragment implements LoaderCallbacks<Cursor> {
 
 	private static final int PERSON_EVENTS_LOADER_ID = 1;
 	private static final String ARG_PERSON = "person";
@@ -56,11 +58,28 @@ public class PersonInfoListFragment extends SmoothListFragment implements Loader
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.more_info:
-				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(person.getUrl()));
-				startActivity(intent);
+				String url = person.getUrl();
+				if (url != null) {
+					Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+					try {
+						startActivity(intent);
+					} catch (ActivityNotFoundException ignore) {
+					}
+				}
 				return true;
 		}
 		return false;
+	}
+
+	@Override
+	protected void onRecyclerViewCreated(RecyclerView recyclerView, Bundle savedInstanceState) {
+		final int contentMargin = getResources().getDimensionPixelSize(R.dimen.content_margin);
+		recyclerView.setPadding(contentMargin, contentMargin, contentMargin, contentMargin);
+		recyclerView.setClipToPadding(false);
+		recyclerView.setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
+
+		recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
+		recyclerView.setAdapter(new ConcatAdapter(new HeaderAdapter(), adapter));
 	}
 
 	@Override
@@ -68,18 +87,7 @@ public class PersonInfoListFragment extends SmoothListFragment implements Loader
 		super.onActivityCreated(savedInstanceState);
 
 		setEmptyText(getString(R.string.no_data));
-
-		int contentMargin = getResources().getDimensionPixelSize(R.dimen.content_margin);
-		ListView listView = getListView();
-		listView.setPadding(contentMargin, contentMargin, contentMargin, contentMargin);
-		listView.setClipToPadding(false);
-		listView.setScrollBarStyle(ListView.SCROLLBARS_OUTSIDE_OVERLAY);
-
-		View headerView = LayoutInflater.from(getActivity()).inflate(R.layout.header_person_info, null);
-		getListView().addHeaderView(headerView, null, false);
-
-		setListAdapter(adapter);
-		setListShown(false);
+		setProgressBarVisible(true);
 
 		getLoaderManager().initLoader(PERSON_EVENTS_LOADER_ID, null, this);
 	}
@@ -110,7 +118,7 @@ public class PersonInfoListFragment extends SmoothListFragment implements Loader
 			adapter.swapCursor(data);
 		}
 
-		setListShown(true);
+		setProgressBarVisible(false);
 	}
 
 	@Override
@@ -118,10 +126,34 @@ public class PersonInfoListFragment extends SmoothListFragment implements Loader
 		adapter.swapCursor(null);
 	}
 
-	@Override
-	public void onListItemClick(ListView l, View v, int position, long id) {
-		Event event = adapter.getItem(position - 1);
-		Intent intent = new Intent(getActivity(), EventDetailsActivity.class).putExtra(EventDetailsActivity.EXTRA_EVENT, event);
-		startActivity(intent);
+	static class HeaderAdapter extends RecyclerView.Adapter<HeaderAdapter.ViewHolder> {
+
+		@Override
+		public int getItemCount() {
+			return 1;
+		}
+
+		@Override
+		public int getItemViewType(int position) {
+			return R.layout.header_person_info;
+		}
+
+		@Override
+		public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+			View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.header_person_info, null);
+			return new ViewHolder(view);
+		}
+
+		@Override
+		public void onBindViewHolder(ViewHolder holder, int position) {
+			// Nothing to bind
+		}
+
+		static class ViewHolder extends RecyclerView.ViewHolder {
+
+			public ViewHolder(View itemView) {
+				super(itemView);
+			}
+		}
 	}
 }

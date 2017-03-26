@@ -7,13 +7,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
-import com.viewpagerindicator.PageIndicator;
+import com.viewpagerindicator.UnderlinePageIndicator;
 
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.db.DatabaseManager;
@@ -24,6 +25,7 @@ import at.linuxtage.companion.model.Track;
 import at.linuxtage.companion.utils.NfcUtils;
 import at.linuxtage.companion.utils.NfcUtils.CreateNfcAppDataCallback;
 import at.linuxtage.companion.widgets.ContentLoadingProgressBar;
+import at.linuxtage.companion.utils.ThemeUtils;
 /**
  * Event view of the track schedule; allows to slide between events of the same track using a ViewPager.
  *
@@ -42,7 +44,7 @@ public class TrackScheduleEventActivity extends AppCompatActivity implements Loa
 	private int initialPosition = -1;
 	private ContentLoadingProgressBar progress;
 	private ViewPager pager;
-	private PageIndicator pageIndicator;
+	private UnderlinePageIndicator pageIndicator;
 	private TrackScheduleEventAdapter adapter;
 
 	@Override
@@ -58,7 +60,8 @@ public class TrackScheduleEventActivity extends AppCompatActivity implements Loa
 		progress = (ContentLoadingProgressBar) findViewById(R.id.progress);
 		pager = (ViewPager) findViewById(R.id.pager);
 		adapter = new TrackScheduleEventAdapter(getSupportFragmentManager());
-		pageIndicator = (PageIndicator) findViewById(R.id.indicator);
+		pageIndicator = (UnderlinePageIndicator) findViewById(R.id.indicator);
+		pageIndicator.setSelectedColor(ContextCompat.getColor(this, track.getType().getColorResId()));
 
 		if (savedInstanceState == null) {
 			initialPosition = extras.getInt(EXTRA_POSITION, -1);
@@ -70,6 +73,7 @@ public class TrackScheduleEventActivity extends AppCompatActivity implements Loa
 		bar.setDisplayHomeAsUpEnabled(true);
 		bar.setTitle(track.toString());
 		bar.setSubtitle(day.toString());
+		ThemeUtils.setActionBarTrackColor(this, track.getType());
 
 		// Enable Android Beam
 		NfcUtils.setAppDataPushMessageCallbackIfAvailable(this, this);

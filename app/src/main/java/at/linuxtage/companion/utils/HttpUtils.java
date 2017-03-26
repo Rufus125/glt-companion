@@ -24,6 +24,7 @@ import javax.net.ssl.SSLSession;
 public class HttpUtils {
 
 	private static final int DEFAULT_TIMEOUT = 10000;
+	private static final int BUFFER_SIZE = 8192;
 
 	static {
 		// HTTP connection reuse was buggy pre-froyo
@@ -86,14 +87,14 @@ public class HttpUtils {
 		}
 
 		final int length = connection.getContentLength();
-		result.inputStream = new BufferedInputStream(connection.getInputStream());
+		result.inputStream = connection.getInputStream();
 
 		if ((progressAction != null) && (length != -1)) {
 			// Broadcast the progression in percents, with a precision of 1/10 of the total file size
 			result.inputStream = new ByteCountInputStream(result.inputStream,
 					new ByteCountInputStream.ByteCountListener() {
 
-						private LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(context);
+						private final LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(context);
 
 						@Override
 						public void onNewCount(int byteCount) {
@@ -105,7 +106,9 @@ public class HttpUtils {
 		}
 
 		if ("gzip".equals(contentEncoding)) {
-			result.inputStream = new GZIPInputStream(result.inputStream);
+			result.inputStream = new GZIPInputStream(result.inputStream, BUFFER_SIZE);
+		} else {
+			result.inputStream = new BufferedInputStream(result.inputStream, BUFFER_SIZE);
 		}
 		return result;
 	}
