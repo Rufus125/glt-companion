@@ -10,9 +10,9 @@ import java.util.Locale;
  */
 public class GLTUrls {
     // https://fosdem.org/schedule/xml
-    private static final String SCHEDULE_URL = "http://flo.cx/tmp/fosdem_d1.xml";
+    //private static final String SCHEDULE_URL = "http://flo.cx/tmp/fosdem_d1.xml";
 
-//    private static final String SCHEDULE_URL = "https://glt%1$d-programm.linuxtage.at/schedule.xml";
+    private static final String SCHEDULE_URL = "https://glt%1$d-programm.linuxtage.at/schedule.xml";
 	//private static final String SCHEDULE_URL = "https://fosdem.org/schedule/xml";
 	private static final String ROOMS_URL = "https://api.fosdem.org/roomstatus/v1/listrooms";
 	//private static final String ROOMS_URL = "https://api.fosdem.org/roomstatus/v1/listrooms";
