@@ -9,7 +9,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 27
         versionCode 1500150
-        versionName "1.5.0"
+        versionName "1.4.5"
         // Supported languages
         resConfigs "en"
         vectorDrawables.useSupportLibrary = true

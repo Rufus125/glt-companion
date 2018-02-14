@@ -24,7 +24,7 @@ import java.util.Date;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.db.DatabaseManager;
 import at.linuxtage.companion.model.Event;
-import be.digitalia.fosdem.model.RoomStatus;
+import at.linuxtage.companion.model.RoomStatus;
 import at.linuxtage.companion.model.Track;
 import at.linuxtage.companion.widgets.MultiChoiceHelper;
 

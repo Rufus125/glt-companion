@@ -1,9 +1,9 @@
-package be.digitalia.fosdem.model;
+package at.linuxtage.companion.model;
 
 import android.support.annotation.ColorRes;
 import android.support.annotation.StringRes;
 
-import be.digitalia.fosdem.R;
+import at.linuxtage.companion.R;
 
 public enum RoomStatus {
 	OPEN(R.string.room_status_open, R.color.room_status_open),

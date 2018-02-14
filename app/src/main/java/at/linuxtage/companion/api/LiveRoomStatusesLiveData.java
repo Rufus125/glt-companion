@@ -1,4 +1,4 @@
-package be.digitalia.fosdem.api;
+package at.linuxtage.companion.api;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -9,10 +9,10 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 
-import be.digitalia.fosdem.livedata.AsyncTaskLiveData;
-import be.digitalia.fosdem.model.RoomStatus;
-import be.digitalia.fosdem.parsers.RoomStatusesParser;
-import be.digitalia.fosdem.utils.HttpUtils;
+import at.linuxtage.companion.livedata.AsyncTaskLiveData;
+import at.linuxtage.companion.model.RoomStatus;
+import at.linuxtage.companion.parsers.RoomStatusesParser;
+import at.linuxtage.companion.utils.HttpUtils;
 
 /**
  * Loads and maintain the Room statuses live during the event.
@@ -67,7 +67,7 @@ class LiveRoomStatusesLiveData extends AsyncTaskLiveData<Map<String, RoomStatus>
 
 	@Override
 	protected Map<String, RoomStatus> loadInBackground() throws Exception {
-		InputStream is = HttpUtils.get(FosdemUrls.getRooms());
+		InputStream is = HttpUtils.get(GLTUrls.getRooms());
 		try {
 			return new RoomStatusesParser().parse(is);
 		} finally {

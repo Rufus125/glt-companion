@@ -202,7 +202,7 @@ public class MainActivity extends BaseActivity {
 
 		// Progress bar setup
 		final ProgressBar progressBar = findViewById(R.id.progress);
-		FosdemApi.getDownloadScheduleProgress().observe(this, new Observer<Integer>() {
+		GLTApi.getDownloadScheduleProgress().observe(this, new Observer<Integer>() {
 
 			@Override
 			public void onChanged(Integer progressInteger) {
@@ -575,7 +575,7 @@ public class MainActivity extends BaseActivity {
 							.setToolbarColor(ContextCompat.getColor(this, R.color.color_primary))
 							.setShowTitle(true)
 							.build()
-							.launchUrl(this, Uri.parse(FosdemUrls.getVolunteer()));
+							.launchUrl(this, Uri.parse(GLTUrls.getVolunteer()));
 				} catch (ActivityNotFoundException ignore) {
 				}
 				break;

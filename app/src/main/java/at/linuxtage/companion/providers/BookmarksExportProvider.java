@@ -30,7 +30,7 @@ import at.linuxtage.companion.R;
 import at.linuxtage.companion.api.GLTUrls;
 import at.linuxtage.companion.db.DatabaseManager;
 import at.linuxtage.companion.model.Event;
-import be.digitalia.fosdem.utils.ICalendarWriter;
+import at.linuxtage.companion.utils.ICalendarWriter;
 import at.linuxtage.companion.utils.StringUtils;
 
 /**

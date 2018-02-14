@@ -1,11 +1,11 @@
-package be.digitalia.fosdem.viewmodels;
+package at.linuxtage.companion.viewmodels;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModel;
 
-import be.digitalia.fosdem.db.DatabaseManager;
-import be.digitalia.fosdem.livedata.AsyncTaskLiveData;
-import be.digitalia.fosdem.model.Event;
+import at.linuxtage.companion.db.DatabaseManager;
+import at.linuxtage.companion.livedata.AsyncTaskLiveData;
+import at.linuxtage.companion.model.Event;
 
 public class EventViewModel extends ViewModel {
 

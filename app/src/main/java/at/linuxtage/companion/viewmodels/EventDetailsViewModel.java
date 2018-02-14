@@ -13,12 +13,12 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import java.util.List;
 
-import be.digitalia.fosdem.db.DatabaseManager;
-import be.digitalia.fosdem.livedata.AsyncTaskLiveData;
-import be.digitalia.fosdem.model.Event;
-import be.digitalia.fosdem.model.Link;
-import be.digitalia.fosdem.model.Person;
-import be.digitalia.fosdem.utils.ArrayUtils;
+import at.linuxtage.companion.db.DatabaseManager;
+import at.linuxtage.companion.livedata.AsyncTaskLiveData;
+import at.linuxtage.companion.model.Event;
+import at.linuxtage.companion.model.Link;
+import at.linuxtage.companion.model.Person;
+import at.linuxtage.companion.utils.ArrayUtils;
 
 public class EventDetailsViewModel extends AndroidViewModel {
 

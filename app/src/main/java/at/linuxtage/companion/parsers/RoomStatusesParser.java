@@ -1,11 +1,11 @@
-package be.digitalia.fosdem.parsers;
+package at.linuxtage.companion.parsers;
 
 import android.util.JsonReader;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import be.digitalia.fosdem.model.RoomStatus;
+import at.linuxtage.companion.model.RoomStatus;
 
 public class RoomStatusesParser extends AbstractJsonPullParser<Map<String, RoomStatus>> {
 

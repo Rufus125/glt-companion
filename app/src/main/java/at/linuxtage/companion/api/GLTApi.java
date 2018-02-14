@@ -15,7 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import at.linuxtage.companion.BuildConfig;
 import at.linuxtage.companion.db.DatabaseManager;
 import at.linuxtage.companion.model.Event;
-import be.digitalia.fosdem.model.RoomStatus;
+import at.linuxtage.companion.model.RoomStatus;
 import at.linuxtage.companion.parsers.EventsParser;
 import at.linuxtage.companion.utils.HttpUtils;
 
@@ -88,7 +88,6 @@ public class GLTApi {
 			scheduleLock.unlock();
 		}
 	}
-
 	/**
 	 * @return The current schedule download progress:
 	 * -1   : in progress, indeterminate
@@ -110,4 +109,5 @@ public class GLTApi {
 		}
 		return roomStatuses;
 	}
+
 }

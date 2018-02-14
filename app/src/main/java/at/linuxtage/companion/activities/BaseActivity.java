@@ -1,4 +1,4 @@
-package be.digitalia.fosdem.activities;
+package at.linuxtage.companion.activities;
 
 import android.support.v4.app.SafeLoadersUtils;
 import android.support.v7.app.AppCompatActivity;

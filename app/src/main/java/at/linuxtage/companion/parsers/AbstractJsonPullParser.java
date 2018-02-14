@@ -1,4 +1,4 @@
-package be.digitalia.fosdem.parsers;
+package at.linuxtage.companion.parsers;
 
 import android.util.JsonReader;
 

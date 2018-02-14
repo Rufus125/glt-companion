@@ -12,8 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import be.digitalia.fosdem.model.Day;
-import be.digitalia.fosdem.model.RoomStatus;
+import at.linuxtage.companion.model.Day;
+import at.linuxtage.companion.model.RoomStatus;
 
 class RoomStatusesLiveData extends MediatorLiveData<Map<String, RoomStatus>> {
 

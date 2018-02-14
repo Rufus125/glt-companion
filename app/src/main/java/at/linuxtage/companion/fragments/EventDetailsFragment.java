@@ -42,14 +42,15 @@ import java.util.Map;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.activities.PersonInfoActivity;
 import at.linuxtage.companion.api.GLTApi;
+import at.linuxtage.companion.db.DatabaseManager;
 import at.linuxtage.companion.model.Building;
 import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.model.Link;
 import at.linuxtage.companion.model.Person;
-import be.digitalia.fosdem.model.RoomStatus;
+import at.linuxtage.companion.model.RoomStatus;
 import at.linuxtage.companion.utils.DateUtils;
 import at.linuxtage.companion.utils.StringUtils;
-import be.digitalia.fosdem.viewmodels.EventDetailsViewModel;
+import at.linuxtage.companion.viewmodels.EventDetailsViewModel;
 
 public class EventDetailsFragment extends Fragment {
 
@@ -224,7 +225,7 @@ public class EventDetailsFragment extends Fragment {
 		});
 
 		// Live room status
-		FosdemApi.getRoomStatuses().observe(this, new Observer<Map<String, RoomStatus>>() {
+		GLTApi.getRoomStatuses().observe(this, new Observer<Map<String, RoomStatus>>() {
 			@Override
 			public void onChanged(Map<String, RoomStatus> roomStatuses) {
 				RoomStatus roomStatus = roomStatuses.get(event.getRoomName());

@@ -32,7 +32,7 @@ import at.linuxtage.companion.activities.EventDetailsActivity;
 import at.linuxtage.companion.api.GLTApi;
 import at.linuxtage.companion.db.DatabaseManager;
 import at.linuxtage.companion.model.Event;
-import be.digitalia.fosdem.model.RoomStatus;
+import at.linuxtage.companion.model.RoomStatus;
 import at.linuxtage.companion.model.Track;
 import at.linuxtage.companion.utils.DateUtils;
 import at.linuxtage.companion.widgets.MultiChoiceHelper;
@@ -56,7 +56,7 @@ public class EventsAdapter extends RecyclerViewCursorAdapter<EventsAdapter.ViewH
 		timeDateFormat = DateUtils.getTimeDateFormat(context);
 		this.showDay = showDay;
 
-		FosdemApi.getRoomStatuses().observe(owner, this);
+		GLTApi.getRoomStatuses().observe(owner, this);
 	}
 
 	@Override
