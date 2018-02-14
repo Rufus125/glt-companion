@@ -1,9 +1,7 @@
 package at.linuxtage.companion.utils;
 
-import android.content.Context;
-import android.content.Intent;
-import android.os.Build;
-import android.support.v4.content.LocalBroadcastManager;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -11,10 +9,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSession;
 
 /**
  * Utility class to perform HTTP requests.
@@ -26,39 +20,27 @@ public class HttpUtils {
 	private static final int DEFAULT_TIMEOUT = 10000;
 	private static final int BUFFER_SIZE = 8192;
 
-	static {
-		// HTTP connection reuse was buggy pre-froyo
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
-			System.setProperty("http.keepAlive", "false");
-		}
-
-		// Bypass hostname verification on older devices
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD) {
-			HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-				public boolean verify(String hostname, SSLSession session) {
-					return true;
-				}
-			});
-		}
-	}
-
 	public static class HttpResult {
 		// Will be null when the local content is up-to-date
 		public InputStream inputStream;
 		public String lastModified;
 	}
 
-	public static InputStream get(Context context, String path) throws IOException {
-		return get(context, new URL(path), null, null, null).inputStream;
+	public interface ProgressUpdateListener {
+		void onProgressUpdate(int percent);
 	}
 
-	public static HttpResult get(Context context, String path, String lastModified,
-								 String progressAction, String progressExtra) throws IOException {
-		return get(context, new URL(path), lastModified, progressAction, progressExtra);
+	public static InputStream get(@NonNull String path) throws IOException {
+		return get(new URL(path), null, null).inputStream;
 	}
 
-	public static HttpResult get(final Context context, URL url, String lastModified,
-								 final String progressAction, final String progressExtra) throws IOException {
+	public static HttpResult get(@NonNull String path, @Nullable String lastModified, @Nullable ProgressUpdateListener listener)
+			throws IOException {
+		return get(new URL(path), lastModified, listener);
+	}
+
+	public static HttpResult get(@NonNull URL url, @Nullable String lastModified, @Nullable final ProgressUpdateListener listener)
+			throws IOException {
 		HttpResult result = new HttpResult();
 
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -89,18 +71,15 @@ public class HttpUtils {
 		final int length = connection.getContentLength();
 		result.inputStream = connection.getInputStream();
 
-		if ((progressAction != null) && (length != -1)) {
+		if ((listener != null) && (length != -1)) {
 			// Broadcast the progression in percents, with a precision of 1/10 of the total file size
 			result.inputStream = new ByteCountInputStream(result.inputStream,
 					new ByteCountInputStream.ByteCountListener() {
-
-						private final LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(context);
-
 						@Override
 						public void onNewCount(int byteCount) {
 							// Cap percent to 100
 							int percent = (byteCount >= length) ? 100 : byteCount * 100 / length;
-							lbm.sendBroadcast(new Intent(progressAction).putExtra(progressExtra, percent));
+							listener.onProgressUpdate(percent);
 						}
 					}, length / 10);
 		}

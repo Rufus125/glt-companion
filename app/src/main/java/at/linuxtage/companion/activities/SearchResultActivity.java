@@ -4,10 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,7 +13,7 @@ import at.linuxtage.companion.R;
 import at.linuxtage.companion.fragments.MessageDialogFragment;
 import at.linuxtage.companion.fragments.SearchResultListFragment;
 
-public class SearchResultActivity extends AppCompatActivity {
+public class SearchResultActivity extends BaseActivity {
 
 	public static final int MIN_SEARCH_LENGTH = 3;
 
@@ -71,11 +68,6 @@ public class SearchResultActivity extends AppCompatActivity {
 				setSearchViewQuery(query);
 			}
 
-			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
-				// Legacy search mode for Eclair
-				getSupportActionBar().setSubtitle(query);
-			}
-
 			SearchResultListFragment f = SearchResultListFragment.newInstance(query);
 			getSupportFragmentManager().beginTransaction().replace(R.id.content, f).commit();
 
@@ -96,23 +88,18 @@ public class SearchResultActivity extends AppCompatActivity {
 		getMenuInflater().inflate(R.menu.search, menu);
 
 		MenuItem searchMenuItem = menu.findItem(R.id.search);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
-			// Associate searchable configuration with the SearchView
-			SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-			searchView = (SearchView) MenuItemCompat.getActionView(searchMenuItem);
-			searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-			searchView.setIconifiedByDefault(false); // Always show the search view
-			setSearchViewQuery(currentQuery);
-		} else {
-			// Legacy search mode for Eclair
-			MenuItemCompat.setActionView(searchMenuItem, null);
-			getSupportActionBar().setSubtitle(currentQuery);
-		}
+		// Associate searchable configuration with the SearchView
+		SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+		searchView = (SearchView) searchMenuItem.getActionView();
+		searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+		searchView.setIconifiedByDefault(false); // Always show the search view
+		setSearchViewQuery(currentQuery);
+
 		return true;
 	}
 
 	private void setSearchViewQuery(String query) {
-		// Force loosing the focus to prevent the suggestions from appearing
+		// Force losing the focus to prevent the suggestions from appearing
 		searchView.clearFocus();
 		searchView.setFocusable(false);
 		searchView.setFocusableInTouchMode(false);
@@ -125,14 +112,6 @@ public class SearchResultActivity extends AppCompatActivity {
 			case android.R.id.home:
 				finish();
 				return true;
-			case R.id.search:
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
-					return false;
-				} else {
-					// Legacy search mode for Eclair
-					onSearchRequested();
-					return true;
-				}
 		}
 		return false;
 	}

@@ -1,10 +1,14 @@
 package at.linuxtage.companion.fragments;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,7 +34,7 @@ public class MapFragment extends Fragment {
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+	public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.fragment_map, container, false);
 	}
 
@@ -45,7 +49,7 @@ public class MapFragment extends Fragment {
 			case R.id.directions:
 				launchDirections();
 				return true;
-			/*case R.id.navigation:
+			/*TODO case R.id.navigation:
 				launchLocalNavigation();
 				return true;*/
 		}
@@ -68,9 +72,13 @@ public class MapFragment extends Fragment {
 	}
 
 	private void launchLocalNavigation() {
-		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(GLTUrls.getLocalNavigation()));
 		try {
-			startActivity(intent);
+			Activity context = getActivity();
+			new CustomTabsIntent.Builder()
+					.setToolbarColor(ContextCompat.getColor(context, R.color.color_primary))
+					.setShowTitle(true)
+					.build()
+					.launchUrl(context, Uri.parse(GLTUrls.getLocalNavigation()));
 		} catch (ActivityNotFoundException ignore) {
 		}
 	}

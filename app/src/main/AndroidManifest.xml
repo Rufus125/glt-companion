@@ -8,9 +8,13 @@
     <uses-permission android:name="android.permission.NFC"/>
 
     <!-- Permissions required for alarms -->
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission
+        android:name="android.permission.WAKE_LOCK"
+        android:maxSdkVersion="25"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission
+        android:name="android.permission.VIBRATE"
+        android:maxSdkVersion="18"/>
 
     <!-- Make touch screen optional since all screens can be used with a pad -->
     <uses-feature
@@ -20,19 +24,20 @@
     <application
         android:name=".GLTApplication"
         android:allowBackup="true"
-        android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
+        android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="at.linuxtage.companion.activities.MainActivity"
+            android:name=".activities.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar.WindowDrawsSystemBarBackgrounds">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
             <meta-data
                 android:name="android.app.default_searchable"
                 android:value=".activities.SearchResultActivity"/>
@@ -41,17 +46,20 @@
                 android:resource="@xml/shortcuts"/>
         </activity>
         <activity
-            android:name="at.linuxtage.companion.activities.TrackScheduleActivity"
-            android:parentActivityName="at.linuxtage.companion.activities.MainActivity"
+            android:name=".activities.TrackScheduleActivity"
+            android:parentActivityName=".activities.MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="at.linuxtage.companion.activities.MainActivity"/>
+                android:value=".activities.MainActivity"/>
         </activity>
-        <activity android:name="at.linuxtage.companion.activities.TrackScheduleEventActivity"/>
         <activity
-            android:name="at.linuxtage.companion.activities.EventDetailsActivity"
-            android:parentActivityName="at.linuxtage.companion.activities.TrackScheduleActivity">
+            android:name=".activities.TrackScheduleEventActivity"
+            android:label="@string/event_details"/>
+        <activity
+            android:name=".activities.EventDetailsActivity"
+            android:label="@string/event_details"
+            android:parentActivityName=".activities.TrackScheduleActivity">
             <intent-filter>
                 <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
 
@@ -61,13 +69,14 @@
             </intent-filter>
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="at.linuxtage.companion.activities.TrackScheduleActivity"/>
+                android:value=".activities.TrackScheduleActivity"/>
         </activity>
         <activity
-            android:name="at.linuxtage.companion.activities.PersonInfoActivity"
+            android:name=".activities.PersonInfoActivity"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
-            android:name="at.linuxtage.companion.activities.SearchResultActivity"
+            android:name=".activities.SearchResultActivity"
+            android:label="@string/search_events"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH"/>
@@ -83,16 +92,21 @@
         </activity>
         <!-- Clearing the Task Affinity allows this dialog activity to be displayed without bringing to front the main application with it. -->
         <activity
-            android:name="at.linuxtage.companion.activities.RoomImageDialogActivity"
+            android:name=".activities.RoomImageDialogActivity"
             android:excludeFromRecents="true"
             android:taskAffinity=""
             android:theme="@style/AlertDialogTheme.NoActionBar"/>
         <activity
-            android:name="at.linuxtage.companion.activities.SettingsActivity"
-            android:label="@string/settings"/>
+            android:name=".activities.SettingsActivity"
+            android:label="@string/settings">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.NOTIFICATION_PREFERENCES"/>
+            </intent-filter>
+        </activity>
 
         <receiver
-            android:name="at.linuxtage.companion.receivers.AlarmReceiver"
+            android:name=".receivers.AlarmReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
@@ -100,15 +114,16 @@
         </receiver>
 
         <service
-            android:name="at.linuxtage.companion.services.AlarmIntentService"
-            android:exported="false"/>
+            android:name=".services.AlarmIntentService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
 
         <provider
-            android:name="at.linuxtage.companion.providers.SearchSuggestionProvider"
+            android:name=".providers.SearchSuggestionProvider"
             android:authorities="${applicationId}.search"
             android:exported="true"/>
         <provider
-            android:name="at.linuxtage.companion.providers.BookmarksExportProvider"
+            android:name=".providers.BookmarksExportProvider"
             android:authorities="${applicationId}.bookmarks"
             android:exported="false"
             android:grantUriPermissions="true"/>

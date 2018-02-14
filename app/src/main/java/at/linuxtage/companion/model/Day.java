@@ -1,15 +1,17 @@
 package at.linuxtage.companion.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.support.annotation.NonNull;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import at.linuxtage.companion.utils.DateUtils;
 
-public class Day implements Parcelable {
+public class Day implements Comparable<Day>, Parcelable {
 
 	private static final DateFormat DAY_DATE_FORMAT = DateUtils.withAustriaTimeZone(new SimpleDateFormat("d.M. (EEEE)", Locale.getDefault()));
 
@@ -61,6 +63,11 @@ public class Day implements Parcelable {
 			return false;
 		Day other = (Day) obj;
 		return (index == other.index);
+	}
+
+	@Override
+	public int compareTo(@NonNull Day other) {
+		return index - other.index;
 	}
 
 	@Override

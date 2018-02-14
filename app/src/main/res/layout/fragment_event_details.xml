@@ -72,8 +72,20 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableLeft="@drawable/ic_place_grey600_18dp"
+                android:drawableStart="@drawable/ic_place_grey600_18dp"
                 android:saveEnabled="false"
                 tools:text="HS16"/>
+
+            <TextView
+                android:id="@+id/room_status"
+                style="@style/TextAppearance.AppCompat.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="26dp"
+                android:paddingStart="26dp"
+                android:saveEnabled="false"
+                tools:text="Open"/>
+
         </LinearLayout>
 
         <TextView
