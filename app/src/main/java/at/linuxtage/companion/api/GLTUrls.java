@@ -24,7 +24,7 @@ public class GLTUrls {
 
 	private static final String LOCAL_NAVIGATION_URL = "https://nav.fosdem.org/";
 	private static final String LOCAL_NAVIGATION_TO_ROOM_URL_FORMAT = "https://nav.fosdem.org/d/%1$s/";
-	private static final String VOLUNTEER_URL = "https://linuxtage.at/impressum/";
+	private static final String VOLUNTEER_URL = "https://linuxtage.at/helfer/";
 	//private static final String VOLUNTEER_URL = "https://fosdem.org/volunteer/";
 
 
