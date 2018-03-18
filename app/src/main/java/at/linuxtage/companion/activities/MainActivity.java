@@ -2,6 +2,8 @@ package at.linuxtage.companion.activities;
 
 import android.app.Dialog;
 import android.app.SearchManager;
+import android.arch.lifecycle.Observer;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,34 +15,31 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
+import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.content.SharedPreferencesCompat;
-import android.support.v4.os.AsyncTaskCompat;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.TextViewCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatDrawableManager;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.format.DateUtils;
-import android.text.method.LinkMovementMethod;
 import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -56,6 +55,7 @@ import android.widget.Toast;
 import at.linuxtage.companion.BuildConfig;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.api.GLTApi;
+import at.linuxtage.companion.api.GLTUrls;
 import at.linuxtage.companion.db.DatabaseManager;
 import at.linuxtage.companion.fragments.BookmarksListFragment;
 import at.linuxtage.companion.fragments.LiveFragment;
@@ -69,7 +69,7 @@ import at.linuxtage.companion.widgets.AdapterLinearLayout;
  *
  * @author Christophe Beyls
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
 	public static final String ACTION_SHORTCUT_BOOKMARKS = BuildConfig.APPLICATION_ID + ".intent.action.SHORTCUT_BOOKMARKS";
 	public static final String ACTION_SHORTCUT_LIVE = BuildConfig.APPLICATION_ID + ".intent.action.SHORTCUT_LIVE";
@@ -128,7 +128,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 	private Toolbar toolbar;
-	ProgressBar progressBar;
 
 	// Main menu
 	Section currentSection;
@@ -142,25 +141,10 @@ public class MainActivity extends AppCompatActivity {
 
 	private MenuItem searchMenuItem;
 
-	private final BroadcastReceiver scheduleDownloadProgressReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			progressBar.setIndeterminate(false);
-			progressBar.setProgress(intent.getIntExtra(GLTApi.EXTRA_PROGRESS, 0));
-		}
-	};
-
 	private final BroadcastReceiver scheduleDownloadResultReceiver = new BroadcastReceiver() {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			// Hide the progress bar with a fill and fade out animation
-			progressBar.setIndeterminate(false);
-			progressBar.setProgress(100);
-			progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_out));
-			progressBar.setVisibility(View.GONE);
-
 			int result = intent.getIntExtra(GLTApi.EXTRA_RESULT, GLTApi.RESULT_ERROR);
 			String message;
 			switch (result) {
@@ -213,14 +197,44 @@ public class MainActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		toolbar = (Toolbar) findViewById(R.id.toolbar);
+		toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
-		progressBar = (ProgressBar) findViewById(R.id.progress);
+		// Progress bar setup
+		final ProgressBar progressBar = findViewById(R.id.progress);
+		GLTApi.getDownloadScheduleProgress().observe(this, new Observer<Integer>() {
+
+			@Override
+			public void onChanged(Integer progressInteger) {
+				int progress = progressInteger;
+				if (progress != 100) {
+					// Visible
+					if (progressBar.getVisibility() == View.GONE) {
+						progressBar.clearAnimation();
+						progressBar.setVisibility(View.VISIBLE);
+					}
+					if (progress == -1) {
+						progressBar.setIndeterminate(true);
+					} else {
+						progressBar.setIndeterminate(false);
+						progressBar.setProgress(progress);
+					}
+				} else {
+					// Invisible
+					if (progressBar.getVisibility() == View.VISIBLE) {
+						// Hide the progress bar with a fill and fade out animation
+						progressBar.setIndeterminate(false);
+						progressBar.setProgress(100);
+						progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_out));
+						progressBar.setVisibility(View.GONE);
+					}
+				}
+			}
+		});
 
 		// Setup drawer layout
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-		drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+		drawerLayout = findViewById(R.id.drawer_layout);
 		drawerLayout.setDrawerShadow(ContextCompat.getDrawable(this, R.drawable.drawer_shadow), GravityCompat.START);
 		drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.main_menu, R.string.close_menu) {
 
@@ -261,16 +275,16 @@ public class MainActivity extends AppCompatActivity {
 
 		// Setup Main menu
 		mainMenu = findViewById(R.id.main_menu);
-		final AdapterLinearLayout sectionsList = (AdapterLinearLayout) findViewById(R.id.sections);
+		final AdapterLinearLayout sectionsList = findViewById(R.id.sections);
 		menuAdapter = new MainMenuAdapter(getLayoutInflater());
 		sectionsList.setAdapter(menuAdapter);
 		mainMenu.findViewById(R.id.settings).setOnClickListener(menuFooterClickListener);
-		mainMenu.findViewById(R.id.about).setOnClickListener(menuFooterClickListener);
+		mainMenu.findViewById(R.id.volunteer).setOnClickListener(menuFooterClickListener);
 
 		LocalBroadcastManager.getInstance(this).registerReceiver(scheduleRefreshedReceiver, new IntentFilter(DatabaseManager.ACTION_SCHEDULE_REFRESHED));
 
 		// Last update date, below the list
-		lastUpdateTextView = (TextView) mainMenu.findViewById(R.id.last_update);
+		lastUpdateTextView = mainMenu.findViewById(R.id.last_update);
 		updateLastUpdateTime();
 
 		// Restore current section
@@ -299,7 +313,7 @@ public class MainActivity extends AppCompatActivity {
 			@Override
 			public void run() {
 				if (sectionsList.getChildCount() > currentSection.ordinal()) {
-					ScrollView mainMenuScrollView = (ScrollView) findViewById(R.id.main_menu_scroll);
+					ScrollView mainMenuScrollView = findViewById(R.id.main_menu_scroll);
 					int requiredScroll = sectionsList.getTop()
 							+ sectionsList.getChildAt(currentSection.ordinal()).getBottom()
 							- mainMenuScrollView.getHeight();
@@ -354,13 +368,9 @@ public class MainActivity extends AppCompatActivity {
 	protected void onStart() {
 		super.onStart();
 
-		// Ensure the progress bar is hidden when starting
-		progressBar.setVisibility(View.GONE);
-
-		// Monitor the schedule download
-		LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
-		lbm.registerReceiver(scheduleDownloadProgressReceiver, new IntentFilter(GLTApi.ACTION_DOWNLOAD_SCHEDULE_PROGRESS));
-		lbm.registerReceiver(scheduleDownloadResultReceiver, new IntentFilter(GLTApi.ACTION_DOWNLOAD_SCHEDULE_RESULT));
+		// Monitor the schedule download result
+		LocalBroadcastManager.getInstance(this).registerReceiver(scheduleDownloadResultReceiver,
+				new IntentFilter(GLTApi.ACTION_DOWNLOAD_SCHEDULE_RESULT));
 
 		// Download reminder
 		long now = System.currentTimeMillis();
@@ -369,9 +379,9 @@ public class MainActivity extends AppCompatActivity {
 			SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 			time = prefs.getLong(PREF_LAST_DOWNLOAD_REMINDER_TIME, -1L);
 			if ((time == -1L) || (time < (now - DOWNLOAD_REMINDER_SNOOZE_DURATION))) {
-				SharedPreferencesCompat.EditorCompat.getInstance().apply(
-						prefs.edit().putLong(PREF_LAST_DOWNLOAD_REMINDER_TIME, now)
-				);
+				prefs.edit()
+						.putLong(PREF_LAST_DOWNLOAD_REMINDER_TIME, now)
+						.apply();
 
 				FragmentManager fm = getSupportFragmentManager();
 				if (fm.findFragmentByTag("download_reminder") == null) {
@@ -383,13 +393,11 @@ public class MainActivity extends AppCompatActivity {
 
 	@Override
 	protected void onStop() {
-		if ((searchMenuItem != null) && (MenuItemCompat.isActionViewExpanded(searchMenuItem))) {
-			MenuItemCompat.collapseActionView(searchMenuItem);
+		if ((searchMenuItem != null) && searchMenuItem.isActionViewExpanded()) {
+			searchMenuItem.collapseActionView();
 		}
 
-		LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
-		lbm.unregisterReceiver(scheduleDownloadProgressReceiver);
-		lbm.unregisterReceiver(scheduleDownloadResultReceiver);
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(scheduleDownloadResultReceiver);
 
 		super.onStop();
 	}
@@ -405,22 +413,11 @@ public class MainActivity extends AppCompatActivity {
 		getMenuInflater().inflate(R.menu.main, menu);
 
 		MenuItem searchMenuItem = menu.findItem(R.id.search);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
-			this.searchMenuItem = searchMenuItem;
-			// Associate searchable configuration with the SearchView
-			SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-			SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchMenuItem);
-			searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-		} else {
-			// Legacy search mode for Eclair
-			MenuItemCompat.setActionView(searchMenuItem, null);
-			MenuItemCompat.setShowAsAction(searchMenuItem, MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
-		}
-
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-			// Animated refresh icon
-			menu.findItem(R.id.refresh).setIcon(R.drawable.avd_sync_white_24dp);
-		}
+		this.searchMenuItem = searchMenuItem;
+		// Associate searchable configuration with the SearchView
+		SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+		SearchView searchView = (SearchView) searchMenuItem.getActionView();
+		searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
 		return true;
 	}
@@ -433,14 +430,6 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 		switch (item.getItemId()) {
-			case R.id.search:
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
-					return false;
-				} else {
-					// Legacy search mode for Eclair
-					onSearchRequested();
-					return true;
-				}
 			case R.id.refresh:
 				Drawable icon = item.getIcon();
 				if (icon instanceof Animatable) {
@@ -455,11 +444,7 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	public void startDownloadSchedule() {
-		// Start by displaying indeterminate progress, determinate will come later
-		progressBar.clearAnimation();
-		progressBar.setIndeterminate(true);
-		progressBar.setVisibility(View.VISIBLE);
-		AsyncTaskCompat.executeParallel(new DownloadScheduleAsyncTask(this));
+		new DownloadScheduleAsyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 	}
 
 	private static class DownloadScheduleAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -516,9 +501,9 @@ public class MainActivity extends AppCompatActivity {
 			Section section = getItem(position);
 			convertView.setSelected(section == currentSection);
 
-			TextView tv = (TextView) convertView.findViewById(R.id.section_text);
+			TextView tv = convertView.findViewById(R.id.section_text);
 			SpannableString sectionTitle = new SpannableString(getString(section.getTitleResId()));
-			Drawable sectionIcon = AppCompatDrawableManager.get().getDrawable(MainActivity.this, section.getIconResId());
+			Drawable sectionIcon = AppCompatResources.getDrawable(MainActivity.this, section.getIconResId());
 			if (section == currentSection) {
 				// Special color for the current section
 				sectionTitle.setSpan(new ForegroundColorSpan(currentSectionForegroundColor), 0, sectionTitle.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -584,31 +569,16 @@ public class MainActivity extends AppCompatActivity {
 				startActivity(new Intent(MainActivity.this, SettingsActivity.class));
 				overridePendingTransition(R.anim.slide_in_right, R.anim.partial_zoom_out);
 				break;
-			case R.id.about:
-				new AboutDialogFragment().show(getSupportFragmentManager(), "about");
+			case R.id.volunteer:
+				try {
+					new CustomTabsIntent.Builder()
+							.setToolbarColor(ContextCompat.getColor(this, R.color.color_primary))
+							.setShowTitle(true)
+							.build()
+							.launchUrl(this, Uri.parse(GLTUrls.getVolunteer()));
+				} catch (ActivityNotFoundException ignore) {
+				}
 				break;
-		}
-	}
-
-	public static class AboutDialogFragment extends DialogFragment {
-
-		@NonNull
-		@Override
-		public Dialog onCreateDialog(Bundle savedInstanceState) {
-			String title = String.format("%1$s %2$s", getString(R.string.app_name), BuildConfig.VERSION_NAME);
-			return new AlertDialog.Builder(getActivity())
-					.setTitle(title)
-					.setIcon(R.mipmap.ic_launcher)
-					.setMessage(getResources().getText(R.string.about_text))
-					.setPositiveButton(android.R.string.ok, null)
-					.create();
-		}
-
-		@Override
-		public void onStart() {
-			super.onStart();
-			// Make links clickable; must be called after the dialog is shown
-			((TextView) getDialog().findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
 		}
 	}
 }

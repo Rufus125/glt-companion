@@ -31,7 +31,7 @@ public class SearchResultListFragment extends RecyclerViewFragment implements Lo
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		adapter = new EventsAdapter(getActivity());
+		adapter = new EventsAdapter(getActivity(), this);
 	}
 
 	@Override

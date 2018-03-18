@@ -11,7 +11,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
 import com.viewpagerindicator.UnderlinePageIndicator;
@@ -31,7 +30,7 @@ import at.linuxtage.companion.utils.ThemeUtils;
  *
  * @author Christophe Beyls
  */
-public class TrackScheduleEventActivity extends AppCompatActivity implements LoaderCallbacks<Cursor>, CreateNfcAppDataCallback {
+public class TrackScheduleEventActivity extends BaseActivity implements LoaderCallbacks<Cursor>, CreateNfcAppDataCallback {
 
 	public static final String EXTRA_DAY = "day";
 	public static final String EXTRA_TRACK = "track";
@@ -57,10 +56,10 @@ public class TrackScheduleEventActivity extends AppCompatActivity implements Loa
 		day = extras.getParcelable(EXTRA_DAY);
 		track = extras.getParcelable(EXTRA_TRACK);
 
-		progress = (ContentLoadingProgressBar) findViewById(R.id.progress);
-		pager = (ViewPager) findViewById(R.id.pager);
+		progress = findViewById(R.id.progress);
+		pager = findViewById(R.id.pager);
 		adapter = new TrackScheduleEventAdapter(getSupportFragmentManager());
-		pageIndicator = (UnderlinePageIndicator) findViewById(R.id.indicator);
+		pageIndicator = findViewById(R.id.indicator);
 		pageIndicator.setSelectedColor(ContextCompat.getColor(this, track.getType().getColorResId()));
 
 		if (savedInstanceState == null) {

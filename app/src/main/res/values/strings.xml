@@ -58,6 +58,11 @@
     <string name="lightning_talk">Lightning talk</string>
     <string name="certification_exam">Certification Exam</string>
 
+    <!-- Room statuses -->
+    <string name="room_status_open">Open</string>
+    <string name="room_status_full">Full</string>
+    <string name="room_status_emergency_evacuation">Emergency evacuation</string>
+
     <!-- Search -->
     <string name="search_events">Search events</string>
     <string name="search_settings_description">Events</string>
@@ -75,6 +80,7 @@
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_enabled_title">Enable notifications</string>
     <string name="settings_notifications_enabled_summary">If checked, this will notify you of upcoming bookmarked events</string>
+    <string name="settings_notifications_channel_title">Customize</string>
     <string name="settings_notifications_vibrate_title">Vibrate</string>
     <string name="settings_notifications_vibrate_summary">Vibrate on notification</string>
     <string name="settings_notifications_led_title">Flash led</string>
@@ -95,6 +101,12 @@
         <item>30</item>
         <item>60</item>
     </string-array>
+
+    <string name="settings_info">Info</string>
+    <string name="settings_info_about_title">About</string>
+    <string name="settings_info_version_title">Version</string>
+
+    <string name="notification_events_channel_name">Upcoming event alarms</string>
 
     <!-- Track schedule -->
     <string name="in_progress_content_description">%1$s (in progress)</string>
@@ -127,7 +139,7 @@
     <string name="directions">Directions to FH Joanneum</string>
     <string name="navigation">On-site navigation</string>
     <string name="no_data">No data available.</string>
-    <string name="about">About</string>
+    <string name="volunteer">Volunteer</string>
     <string name="about_text">Adapted and provided by <a href="http://flo.cx">Florian Klien</a> and Georg Schlagholz.
 \nThe source is available on <a href="https://github.com/linuxtage/glt-companion">GitHub</a>.
 \nLicensed under the Apache License, version 2.0.\n

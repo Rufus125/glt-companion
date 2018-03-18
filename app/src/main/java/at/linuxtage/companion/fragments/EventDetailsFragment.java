@@ -2,20 +2,21 @@ package at.linuxtage.companion.fragments;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Animatable;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.CalendarContract;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.app.ShareCompat;
-import android.support.v4.content.Loader;
+import android.support.v4.content.ContextCompat;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -36,19 +37,20 @@ import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.List;
+import java.util.Map;
 
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.activities.PersonInfoActivity;
+import at.linuxtage.companion.api.GLTApi;
 import at.linuxtage.companion.db.DatabaseManager;
-import at.linuxtage.companion.loaders.BookmarkStatusLoader;
-import at.linuxtage.companion.loaders.LocalCacheLoader;
 import at.linuxtage.companion.model.Building;
 import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.model.Link;
 import at.linuxtage.companion.model.Person;
+import at.linuxtage.companion.model.RoomStatus;
 import at.linuxtage.companion.utils.DateUtils;
 import at.linuxtage.companion.utils.StringUtils;
+import at.linuxtage.companion.viewmodels.EventDetailsViewModel;
 
 public class EventDetailsFragment extends Fragment {
 
@@ -60,27 +62,20 @@ public class EventDetailsFragment extends Fragment {
 		ImageView getActionButton();
 	}
 
-	static class EventDetails {
-		List<Person> persons;
-		List<Link> links;
-	}
-
 	static class ViewHolder {
 		LayoutInflater inflater;
 		TextView personsTextView;
+		TextView roomStatus;
 		View linksHeader;
 		ViewGroup linksContainer;
 	}
-
-	private static final int BOOKMARK_STATUS_LOADER_ID = 1;
-	private static final int EVENT_DETAILS_LOADER_ID = 2;
 
 	private static final String ARG_EVENT = "event";
 
 	Event event;
 	int personsCount = 1;
-	Boolean isBookmarked;
 	ViewHolder holder;
+	EventDetailsViewModel viewModel;
 
 	private MenuItem bookmarkMenuItem;
 	private ImageView actionButton;
@@ -97,6 +92,8 @@ public class EventDetailsFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		event = getArguments().getParcelable(ARG_EVENT);
+		viewModel = ViewModelProviders.of(this).get(EventDetailsViewModel.class);
+		viewModel.setEvent(event);
 	}
 
 	public Event getEvent() {
@@ -104,14 +101,14 @@ public class EventDetailsFragment extends Fragment {
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+	public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_event_details, container, false);
 
 		holder = new ViewHolder();
 		holder.inflater = inflater;
 
 		((TextView) view.findViewById(R.id.title)).setText(event.getTitle());
-		TextView textView = (TextView) view.findViewById(R.id.subtitle);
+		TextView textView = view.findViewById(R.id.subtitle);
 		String text = event.getSubTitle();
 		if (TextUtils.isEmpty(text)) {
 			textView.setVisibility(View.GONE);
@@ -122,7 +119,7 @@ public class EventDetailsFragment extends Fragment {
 		MovementMethod linkMovementMethod = LinkMovementMethod.getInstance();
 
 		// Set the persons summary text first; replace it with the clickable text when the loader completes
-		holder.personsTextView = (TextView) view.findViewById(R.id.persons);
+		holder.personsTextView = view.findViewById(R.id.persons);
 		String personsSummary = event.getPersonsSummary();
 		if (TextUtils.isEmpty(personsSummary)) {
 			holder.personsTextView.setVisibility(View.GONE);
@@ -133,12 +130,12 @@ public class EventDetailsFragment extends Fragment {
 		}
 
 
-		textView = ((TextView) view.findViewById(R.id.track));
+		textView = view.findViewById(R.id.track);
 		text = event.getTrack().getName();
 		textView.setText(text);
 		textView.setContentDescription(getString(R.string.track_content_description, text));
 
-		textView = ((TextView) view.findViewById(R.id.time));
+		textView = view.findViewById(R.id.time);
 		Date startTime = event.getStartTime();
 		Date endTime = event.getEndTime();
 		DateFormat timeDateFormat = DateUtils.getTimeDateFormat(getActivity());
@@ -149,7 +146,7 @@ public class EventDetailsFragment extends Fragment {
 		textView.setText(text);
 		textView.setContentDescription(getString(R.string.time_content_description, text));
 
-		textView = (TextView) view.findViewById(R.id.room);
+		textView = view.findViewById(R.id.room);
 		final String roomName = event.getRoomName();
 		//Spannable roomText = new SpannableString(String.format("%1$s (Building %2$s)", roomName, Building.fromRoomName(roomName)));
 		// not relevant ATM
@@ -174,8 +171,10 @@ public class EventDetailsFragment extends Fragment {
 		textView.setText(roomText);
 		textView.setContentDescription(getString(R.string.room_content_description, roomText));
 
+		holder.roomStatus = view.findViewById(R.id.room_status);
 
-		textView = (TextView) view.findViewById(R.id.abstract_text);
+
+		textView = view.findViewById(R.id.abstract_text);
 		text = event.getAbstractText();
 		if (TextUtils.isEmpty(text)) {
 			textView.setVisibility(View.GONE);
@@ -183,7 +182,7 @@ public class EventDetailsFragment extends Fragment {
 			textView.setText(StringUtils.parseHtml(text, getResources()));
 			textView.setMovementMethod(linkMovementMethod);
 		}
-		textView = (TextView) view.findViewById(R.id.description);
+		textView = view.findViewById(R.id.description);
 		text = event.getDescription();
 		if (TextUtils.isEmpty(text)) {
 			textView.setVisibility(View.GONE);
@@ -193,7 +192,7 @@ public class EventDetailsFragment extends Fragment {
 		}
 
 		holder.linksHeader = view.findViewById(R.id.links_header);
-		holder.linksContainer = (ViewGroup) view.findViewById(R.id.links_container);
+		holder.linksContainer = view.findViewById(R.id.links_container);
 		return view;
 	}
 
@@ -212,18 +211,39 @@ public class EventDetailsFragment extends Fragment {
 		// Ensure the actionButton is initialized before creating the options menu
 		setHasOptionsMenu(true);
 
-		LoaderManager loaderManager = getLoaderManager();
-		loaderManager.initLoader(BOOKMARK_STATUS_LOADER_ID, null, bookmarkStatusLoaderCallbacks);
-		loaderManager.initLoader(EVENT_DETAILS_LOADER_ID, null, eventDetailsLoaderCallbacks);
+		viewModel.getBookmarkStatus().observe(this, new Observer<Boolean>() {
+			@Override
+			public void onChanged(@Nullable Boolean isBookmarked) {
+				updateBookmarkMenuItem(isBookmarked, true);
+			}
+		});
+		viewModel.getEventDetails().observe(this, new Observer<EventDetailsViewModel.EventDetails>() {
+			@Override
+			public void onChanged(@Nullable EventDetailsViewModel.EventDetails eventDetails) {
+				setEventDetails(eventDetails);
+			}
+		});
+
+		// Live room status
+		GLTApi.getRoomStatuses().observe(this, new Observer<Map<String, RoomStatus>>() {
+			@Override
+			public void onChanged(Map<String, RoomStatus> roomStatuses) {
+				RoomStatus roomStatus = roomStatuses.get(event.getRoomName());
+				if (roomStatus == null) {
+					holder.roomStatus.setText(null);
+				} else {
+					holder.roomStatus.setText(roomStatus.getNameResId());
+					holder.roomStatus.setTextColor(ContextCompat.getColor(getContext(), roomStatus.getColorResId()));
+				}
+			}
+		});
 	}
 
 	private final View.OnClickListener actionButtonClickListener = new View.OnClickListener() {
 
 		@Override
 		public void onClick(View view) {
-			if (isBookmarked != null) {
-				new UpdateBookmarkAsyncTask(event).execute(isBookmarked);
-			}
+			viewModel.toggleBookmarkStatus();
 		}
 	};
 
@@ -246,7 +266,7 @@ public class EventDetailsFragment extends Fragment {
 		if (actionButton != null) {
 			bookmarkMenuItem.setEnabled(false).setVisible(false);
 		}
-		updateBookmarkMenuItem(false);
+		updateBookmarkMenuItem(viewModel.getBookmarkStatus().getValue(), false);
 	}
 
 	private Intent getShareChooserIntent() {
@@ -258,7 +278,7 @@ public class EventDetailsFragment extends Fragment {
 				.createChooserIntent();
 	}
 
-	void updateBookmarkMenuItem(boolean animate) {
+	void updateBookmarkMenuItem(Boolean isBookmarked, boolean animate) {
 		if (actionButton != null) {
 			// Action Button is used as bookmark button
 
@@ -266,8 +286,7 @@ public class EventDetailsFragment extends Fragment {
 				actionButton.setEnabled(false);
 			} else {
 				// Only animate if the button was showing a previous value
-				animate = animate && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-						&& actionButton.isEnabled();
+				animate = animate && actionButton.isEnabled();
 				actionButton.setEnabled(true);
 
 				if (isBookmarked) {
@@ -289,8 +308,7 @@ public class EventDetailsFragment extends Fragment {
 					bookmarkMenuItem.setEnabled(false);
 				} else {
 					// Only animate if the menu item was showing a previous value
-					animate = animate && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-							&& bookmarkMenuItem.isEnabled();
+					animate = animate && bookmarkMenuItem.isEnabled();
 					bookmarkMenuItem.setEnabled(true);
 
 					if (isBookmarked) {
@@ -319,34 +337,13 @@ public class EventDetailsFragment extends Fragment {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.bookmark:
-				if (isBookmarked != null) {
-					new UpdateBookmarkAsyncTask(event).execute(isBookmarked);
-				}
+				viewModel.toggleBookmarkStatus();
 				return true;
 			case R.id.add_to_agenda:
 				addToAgenda();
 				return true;
 		}
 		return false;
-	}
-
-	private static class UpdateBookmarkAsyncTask extends AsyncTask<Boolean, Void, Void> {
-
-		private final Event event;
-
-		public UpdateBookmarkAsyncTask(Event event) {
-			this.event = event;
-		}
-
-		@Override
-		protected Void doInBackground(Boolean... remove) {
-			if (remove[0]) {
-				DatabaseManager.getInstance().removeBookmark(event);
-			} else {
-				DatabaseManager.getInstance().addBookmark(event);
-			}
-			return null;
-		}
 	}
 
 	@SuppressLint("InlinedApi")
@@ -381,97 +378,45 @@ public class EventDetailsFragment extends Fragment {
 		}
 	}
 
-	private final LoaderCallbacks<Boolean> bookmarkStatusLoaderCallbacks = new LoaderCallbacks<Boolean>() {
-
-		@Override
-		public Loader<Boolean> onCreateLoader(int id, Bundle args) {
-			return new BookmarkStatusLoader(getActivity(), event);
-		}
-
-		@Override
-		public void onLoadFinished(Loader<Boolean> loader, Boolean data) {
-			if (isBookmarked != data) {
-				isBookmarked = data;
-				updateBookmarkMenuItem(true);
+	void setEventDetails(@NonNull EventDetailsViewModel.EventDetails data) {
+		// 1. Persons
+		if (data.persons != null) {
+			personsCount = data.persons.size();
+			if (personsCount > 0) {
+				// Build a list of clickable persons
+				SpannableStringBuilder sb = new SpannableStringBuilder();
+				int length = 0;
+				for (Person person : data.persons) {
+					if (length != 0) {
+						sb.append(", ");
+					}
+					String name = person.getName();
+					sb.append(name);
+					length = sb.length();
+					sb.setSpan(new PersonClickableSpan(person), length - name.length(), length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				}
+				holder.personsTextView.setText(sb);
+				holder.personsTextView.setVisibility(View.VISIBLE);
 			}
 		}
 
-		@Override
-		public void onLoaderReset(Loader<Boolean> loader) {
-		}
-	};
-
-	private static class EventDetailsLoader extends LocalCacheLoader<EventDetails> {
-
-		private final Event event;
-
-		public EventDetailsLoader(Context context, Event event) {
-			super(context);
-			this.event = event;
-		}
-
-		@Override
-		public EventDetails loadInBackground() {
-			EventDetails result = new EventDetails();
-			DatabaseManager dbm = DatabaseManager.getInstance();
-			result.persons = dbm.getPersons(event);
-			result.links = dbm.getLinks(event);
-			return result;
+		// 2. Links
+		holder.linksContainer.removeAllViews();
+		if ((data.links != null) && (data.links.size() > 0)) {
+			holder.linksHeader.setVisibility(View.VISIBLE);
+			holder.linksContainer.setVisibility(View.VISIBLE);
+			for (Link link : data.links) {
+				View view = holder.inflater.inflate(R.layout.item_link, holder.linksContainer, false);
+				TextView tv = view.findViewById(R.id.description);
+				tv.setText(link.getDescription());
+				view.setOnClickListener(new LinkClickListener(link));
+				holder.linksContainer.addView(view);
+			}
+		} else {
+			holder.linksHeader.setVisibility(View.GONE);
+			holder.linksContainer.setVisibility(View.GONE);
 		}
 	}
-
-	private final LoaderCallbacks<EventDetails> eventDetailsLoaderCallbacks = new LoaderCallbacks<EventDetails>() {
-
-		@Override
-		public Loader<EventDetails> onCreateLoader(int id, Bundle args) {
-			return new EventDetailsLoader(getActivity(), event);
-		}
-
-		@Override
-		public void onLoadFinished(Loader<EventDetails> loader, EventDetails data) {
-			// 1. Persons
-			if (data.persons != null) {
-				personsCount = data.persons.size();
-				if (personsCount > 0) {
-					// Build a list of clickable persons
-					SpannableStringBuilder sb = new SpannableStringBuilder();
-					int length = 0;
-					for (Person person : data.persons) {
-						if (length != 0) {
-							sb.append(", ");
-						}
-						String name = person.getName();
-						sb.append(name);
-						length = sb.length();
-						sb.setSpan(new PersonClickableSpan(person), length - name.length(), length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-					}
-					holder.personsTextView.setText(sb);
-					holder.personsTextView.setVisibility(View.VISIBLE);
-				}
-			}
-
-			// 2. Links
-			holder.linksContainer.removeAllViews();
-			if ((data.links != null) && (data.links.size() > 0)) {
-				holder.linksHeader.setVisibility(View.VISIBLE);
-				holder.linksContainer.setVisibility(View.VISIBLE);
-				for (Link link : data.links) {
-					View view = holder.inflater.inflate(R.layout.item_link, holder.linksContainer, false);
-					TextView tv = (TextView) view.findViewById(R.id.description);
-					tv.setText(link.getDescription());
-					view.setOnClickListener(new LinkClickListener(link));
-					holder.linksContainer.addView(view);
-				}
-			} else {
-				holder.linksHeader.setVisibility(View.GONE);
-				holder.linksContainer.setVisibility(View.GONE);
-			}
-		}
-
-		@Override
-		public void onLoaderReset(Loader<EventDetails> loader) {
-		}
-	};
 
 	private static class PersonClickableSpan extends ClickableSpan {
 
@@ -495,7 +440,7 @@ public class EventDetailsFragment extends Fragment {
 		}
 	}
 
-	private static class LinkClickListener implements View.OnClickListener {
+	private class LinkClickListener implements View.OnClickListener {
 
 		private final Link link;
 
@@ -507,9 +452,15 @@ public class EventDetailsFragment extends Fragment {
 		public void onClick(View v) {
 			String url = link.getUrl();
 			if (url != null) {
-				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
 				try {
-					v.getContext().startActivity(intent);
+					Activity context = getActivity();
+					new CustomTabsIntent.Builder()
+							.setToolbarColor(ContextCompat.getColor(context, event.getTrack().getType().getColorResId()))
+							.setShowTitle(true)
+							.setStartAnimations(context, R.anim.slide_in_right, R.anim.slide_out_left)
+							.setExitAnimations(context, R.anim.slide_in_left, R.anim.slide_out_right)
+							.build()
+							.launchUrl(context, Uri.parse(url));
 				} catch (ActivityNotFoundException ignore) {
 				}
 			}

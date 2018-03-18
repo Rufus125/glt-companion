@@ -3,7 +3,7 @@
 This is the schedule browser for the "[Grazer Linuxtage](https://linuxtage.at)" conference in Graz, Austria. 
 
 It's a fork of [FOSDEM companion](https://github.com/cbeyls/fosdem-companion-android) by [Christophe Beyls](https://github.com/cbeyls).
-
+ The code has been rewritten from scratch and the features have been extended. It is built on top of the latest Android support libraries in order to take advantage of the latest operating system features while preserving compatibility with older versions.
 You can install the app from the [Google Play Store](https://play.google.com/store/apps/details?id=at.linuxtage.companion) or directly from the [GLT website](https://linuxtage.at/downloads/app).
 
 Donations to Grazer Linuxtage are possible via Bitcoin: [1GLTBBirbj8GZ8uY1gwovZ1QEMjfWu3rWT](bitcoin:1GLTBBirbj8GZ8uY1gwovZ1QEMjfWu3rWT)

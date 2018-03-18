@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<be.digitalia.fosdem.widgets.CheckableLinearLayout
+<be.digitalia.fosdem.widgets.ForegroundLinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
     android:focusable="true"
-    android:foreground="@drawable/checkable_foreground"
+    android:foreground="@drawable/activated_background"
     android:orientation="vertical"
     android:paddingBottom="@dimen/list_item_padding"
     android:paddingLeft="?attr/listPreferredItemPaddingLeft"
@@ -51,4 +51,4 @@
         tools:text="Saturday, 09:30 - 09:55 | HS16"/>
 
 
-</be.digitalia.fosdem.widgets.CheckableLinearLayout>
+</be.digitalia.fosdem.widgets.ForegroundLinearLayout>

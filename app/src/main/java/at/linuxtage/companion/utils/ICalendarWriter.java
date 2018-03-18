@@ -1,4 +1,4 @@
-package be.digitalia.fosdem.utils;
+package at.linuxtage.companion.utils;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;

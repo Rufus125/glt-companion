@@ -1,32 +1,30 @@
 package at.linuxtage.companion.fragments;
 
-import java.util.List;
-
-import android.content.BroadcastReceiver;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.content.SharedPreferencesCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import java.util.List;
+
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.db.DatabaseManager;
-import at.linuxtage.companion.loaders.GlobalCacheLoader;
 import at.linuxtage.companion.model.Day;
 import at.linuxtage.companion.widgets.SlidingTabLayout;
 
-public class TracksFragment extends Fragment implements RecycledViewPoolProvider, LoaderCallbacks<List<Day>> {
+public class TracksFragment extends Fragment implements RecycledViewPoolProvider, Observer<List<Day>> {
 
 	static class ViewHolder {
 		View contentView;
@@ -37,7 +35,6 @@ public class TracksFragment extends Fragment implements RecycledViewPoolProvider
 		RecyclerView.RecycledViewPool recycledViewPool;
 	}
 
-	private static final int DAYS_LOADER_ID = 1;
 	private static final String PREF_CURRENT_PAGE = "tracks_current_page";
 
 	private ViewHolder holder;
@@ -54,14 +51,14 @@ public class TracksFragment extends Fragment implements RecycledViewPoolProvider
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+	public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_tracks, container, false);
 
 		holder = new ViewHolder();
 		holder.contentView = view.findViewById(R.id.content);
 		holder.emptyView = view.findViewById(android.R.id.empty);
-		holder.pager = (ViewPager) view.findViewById(R.id.pager);
-		holder.slidingTabs = (SlidingTabLayout) view.findViewById(R.id.sliding_tabs);
+		holder.pager = view.findViewById(R.id.pager);
+		holder.slidingTabs = view.findViewById(R.id.sliding_tabs);
 		holder.daysAdapter = new DaysAdapter(getChildFragmentManager());
 		holder.recycledViewPool = new RecyclerView.RecycledViewPool();
 
@@ -78,7 +75,9 @@ public class TracksFragment extends Fragment implements RecycledViewPoolProvider
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
-		getLoaderManager().initLoader(DAYS_LOADER_ID, null, this);
+		LiveData<List<Day>> daysLiveData = DatabaseManager.getInstance().getDays();
+		daysLiveData.removeObserver(this);
+		daysLiveData.observe(this, this);
 	}
 
 	@Override
@@ -88,9 +87,9 @@ public class TracksFragment extends Fragment implements RecycledViewPoolProvider
 		final int page = holder.pager.getCurrentItem();
 		SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
 		if (prefs.getInt(PREF_CURRENT_PAGE, -1) != page) {
-			SharedPreferencesCompat.EditorCompat.getInstance().apply(
-					prefs.edit().putInt(PREF_CURRENT_PAGE, page)
-			);
+			prefs.edit()
+					.putInt(PREF_CURRENT_PAGE, page)
+					.apply();
 		}
 	}
 
@@ -99,48 +98,9 @@ public class TracksFragment extends Fragment implements RecycledViewPoolProvider
 		return (holder == null) ? null : holder.recycledViewPool;
 	}
 
-	private static class DaysLoader extends GlobalCacheLoader<List<Day>> {
-
-		private final BroadcastReceiver scheduleRefreshedReceiver = new BroadcastReceiver() {
-
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				onContentChanged();
-			}
-		};
-
-		public DaysLoader(Context context) {
-			super(context);
-			// Reload days list when the schedule has been refreshed
-			LocalBroadcastManager.getInstance(context).registerReceiver(scheduleRefreshedReceiver,
-					new IntentFilter(DatabaseManager.ACTION_SCHEDULE_REFRESHED));
-		}
-
-		@Override
-		protected void onReset() {
-			super.onReset();
-			LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(scheduleRefreshedReceiver);
-		}
-
-		@Override
-		protected List<Day> getCachedResult() {
-			return DatabaseManager.getInstance().getCachedDays();
-		}
-
-		@Override
-		public List<Day> loadInBackground() {
-			return DatabaseManager.getInstance().getDays();
-		}
-	}
-
 	@Override
-	public Loader<List<Day>> onCreateLoader(int id, Bundle args) {
-		return new DaysLoader(getActivity());
-	}
-
-	@Override
-	public void onLoadFinished(Loader<List<Day>> loader, List<Day> data) {
-		holder.daysAdapter.setDays(data);
+	public void onChanged(@Nullable List<Day> days) {
+		holder.daysAdapter.setDays(days);
 
 		final int totalPages = holder.daysAdapter.getCount();
 		if (totalPages == 0) {
@@ -158,10 +118,6 @@ public class TracksFragment extends Fragment implements RecycledViewPoolProvider
 				savedCurrentPage = -1;
 			}
 		}
-	}
-
-	@Override
-	public void onLoaderReset(Loader<List<Day>> loader) {
 	}
 
 	private static class DaysAdapter extends FragmentStatePagerAdapter {
@@ -194,6 +150,7 @@ public class TracksFragment extends Fragment implements RecycledViewPoolProvider
 			return days.get(position).toString();
 		}
 
+		@NonNull
 		@Override
 		public Object instantiateItem(ViewGroup container, int position) {
 			// Allow the non-primary fragments to start as soon as they are visible
