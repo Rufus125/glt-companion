@@ -54,7 +54,7 @@ public class GLTApi {
 		try {
 			DatabaseManager dbManager = DatabaseManager.getInstance();
 			HttpUtils.HttpResult httpResult = HttpUtils.get(
-					GLTUrls.getSchedule(),
+					GLTUrls.getSchedule(DatabaseManager.getInstance().getYear()),
 					dbManager.getLastModifiedTag(),
 					new HttpUtils.ProgressUpdateListener() {
 						@Override

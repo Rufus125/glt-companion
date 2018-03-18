@@ -28,8 +28,8 @@ public class GLTUrls {
 	//private static final String VOLUNTEER_URL = "https://fosdem.org/volunteer/";
 
 
-	public static String getSchedule() {
-		return SCHEDULE_URL;
+	public static String getSchedule(int year) {
+		return String.format(Locale.US, SCHEDULE_URL, year-2000);
 	}
 
 	public static String getRooms() {
