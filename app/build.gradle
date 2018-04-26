@@ -1,20 +1,23 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        klienuxat {
+            keyAlias 'klienuxAT'
+        }
+    }
     compileSdkVersion 27
     buildToolsVersion "27.0.3"
-
     defaultConfig {
         applicationId "at.linuxtage.companion"
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode 1500150
-        versionName "1.4.5"
+        versionCode 1500151
+        versionName "1.4.6"
         // Supported languages
         resConfigs "en"
         vectorDrawables.useSupportLibrary = true
     }
-
     buildTypes {
         release {
             minifyEnabled true
