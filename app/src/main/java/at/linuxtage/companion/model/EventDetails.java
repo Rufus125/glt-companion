@@ -1,4 +1,4 @@
-package be.digitalia.companion.model;
+package at.linuxtage.companion.model;
 
 import androidx.annotation.NonNull;
 

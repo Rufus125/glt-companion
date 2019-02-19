@@ -27,7 +27,7 @@ import at.linuxtage.companion.utils.ThemeUtils;
 import at.linuxtage.companion.viewmodels.BookmarkStatusViewModel;
 import at.linuxtage.companion.viewmodels.TrackScheduleEventViewModel;
 import at.linuxtage.companion.widgets.BookmarkStatusAdapter;
-import be.digitalia.fosdem.widgets.ContentLoadingProgressBar;
+import at.linuxtage.companion.widgets.ContentLoadingProgressBar;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomappbar.BottomAppBar;
 

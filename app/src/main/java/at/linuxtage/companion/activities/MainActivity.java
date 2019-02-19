@@ -41,6 +41,7 @@ import at.linuxtage.companion.BuildConfig;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.api.GLTApi;
 import at.linuxtage.companion.api.GLTApi;
+import at.linuxtage.companion.api.GLTUrls;
 import at.linuxtage.companion.db.AppDatabase;
 import at.linuxtage.companion.fragments.*;
 import at.linuxtage.companion.livedata.SingleEvent;
@@ -184,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements NfcUtils.CreateNf
 
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							FosdemApi.downloadSchedule(getContext());
+							GLTApi.downloadSchedule(getContext());
 						}
 
 					}).setNegativeButton(android.R.string.cancel, null)
@@ -241,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements NfcUtils.CreateNf
 		});
 
 		// Monitor the schedule download result
-		FosdemApi.getDownloadScheduleResult().observe(this, scheduleDownloadResultObserver);
+		GLTApi.getDownloadScheduleResult().observe(this, scheduleDownloadResultObserver);
 
 		// Setup drawer layout
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -387,10 +388,6 @@ public class MainActivity extends AppCompatActivity implements NfcUtils.CreateNf
 	protected void onStart() {
 		super.onStart();
 
-		// Monitor the schedule download result
-		LocalBroadcastManager.getInstance(this).registerReceiver(scheduleDownloadResultReceiver,
-				new IntentFilter(GLTApi.ACTION_DOWNLOAD_SCHEDULE_RESULT));
-
 		// Download reminder
 		long now = System.currentTimeMillis();
 		Long timeValue = AppDatabase.getInstance(this).getScheduleDao().getLastUpdateTime().getValue();
@@ -449,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements NfcUtils.CreateNf
 					item.setIcon(icon);
 					((Animatable) icon).start();
 				}
-				FosdemApi.downloadSchedule(this);
+				GLTApi.downloadSchedule(this);
 				return true;
 		}
 		return false;
@@ -474,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements NfcUtils.CreateNf
 								.setToolbarColor(ContextCompat.getColor(this, R.color.color_primary))
 								.setShowTitle(true)
 								.build()
-								.launchUrl(this, Uri.parse(FosdemUrls.getVolunteer()));
+								.launchUrl(this, Uri.parse(GLTUrls.getVolunteer()));
 					} catch (ActivityNotFoundException ignore) {
 					}
 					break;

@@ -1,4 +1,4 @@
-package be.digitalia.companion.widgets;
+package at.linuxtage.companion.widgets;
 
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
@@ -7,9 +7,9 @@ import android.widget.ImageButton;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
-import be.digitalia.companion.R;
-import be.digitalia.companion.model.BookmarkStatus;
-import be.digitalia.companion.viewmodels.BookmarkStatusViewModel;
+import at.linuxtage.companion.R;
+import at.linuxtage.companion.model.BookmarkStatus;
+import at.linuxtage.companion.viewmodels.BookmarkStatusViewModel;
 
 public class BookmarkStatusAdapter {
 

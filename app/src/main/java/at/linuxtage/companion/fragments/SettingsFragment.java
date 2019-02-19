@@ -1,4 +1,4 @@
-package be.digitalia.companion.fragments;
+package at.linuxtage.companion.fragments;
 
 import android.app.Dialog;
 import android.os.Build;
@@ -12,9 +12,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import be.digitalia.companion.BuildConfig;
-import be.digitalia.companion.R;
-import be.digitalia.companion.services.AlarmIntentService;
+import at.linuxtage.companion.BuildConfig;
+import at.linuxtage.companion.R;
+import at.linuxtage.companion.services.AlarmIntentService;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 

@@ -1,7 +1,12 @@
-package be.digitalia.companion.db;
+package at.linuxtage.companion.db;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.DatabaseUtils;
+
+import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
 
 import androidx.room.Database;
 import androidx.room.Room;
@@ -9,15 +14,16 @@ import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
-import be.digitalia.companion.db.converters.GlobalTypeConverters;
-import be.digitalia.companion.db.entities.Bookmark;
-import be.digitalia.companion.db.entities.EventEntity;
-import be.digitalia.companion.db.entities.EventTitles;
-import be.digitalia.companion.db.entities.EventToPerson;
-import be.digitalia.companion.model.Day;
-import be.digitalia.companion.model.Link;
-import be.digitalia.companion.model.Person;
-import be.digitalia.companion.model.Track;
+import at.linuxtage.companion.db.converters.GlobalTypeConverters;
+import at.linuxtage.companion.db.entities.Bookmark;
+import at.linuxtage.companion.db.entities.EventEntity;
+import at.linuxtage.companion.db.entities.EventTitles;
+import at.linuxtage.companion.db.entities.EventToPerson;
+import at.linuxtage.companion.model.Day;
+import at.linuxtage.companion.model.Link;
+import at.linuxtage.companion.model.Person;
+import at.linuxtage.companion.model.Track;
+import at.linuxtage.companion.utils.DateUtils;
 
 @Database(entities = {EventEntity.class, EventTitles.class, Person.class, EventToPerson.class, Link.class, Track.class, Day.class, Bookmark.class}, version = 2, exportSchema = false)
 @TypeConverters({GlobalTypeConverters.class})
@@ -25,6 +31,7 @@ public abstract class AppDatabase extends RoomDatabase {
 
 	private static final String DB_PREFS_FILE = "database";
 	private static volatile AppDatabase INSTANCE;
+	private int year = -1;
 
 	static final Migration MIGRATION_1_2 = new Migration(1, 2) {
 		@Override
@@ -91,6 +98,32 @@ public abstract class AppDatabase extends RoomDatabase {
 			}
 		}
 		return res;
+	}
+
+	public int getYear() {
+		// Try to get the cached value first
+		if (year != -1) {
+			return year;
+		}
+
+		Calendar cal = Calendar.getInstance(DateUtils.getAustriaTimeZone(), Locale.US);
+/*
+		// Compute from cached days if available
+		List<Day> days = daysLiveData.getValue();
+		if (days != null) {
+			if (days.size() > 0) {
+				cal.setTime(days.get(0).getDate());
+			}
+		} else {
+			// Perform a quick DB query to retrieve the time of the first day
+			long date = DatabaseUtils.longForQuery(helper.getReadableDatabase(),
+					"SELECT date FROM " + DatabaseHelper.DAYS_TABLE_NAME + " ORDER BY _index ASC LIMIT 1", null);
+			cal.setTimeInMillis(date);
+		}
+*/
+		// If the calendar has not been set at this point, it will simply return the current year
+		year = cal.get(Calendar.YEAR);
+		return year;
 	}
 
 	public abstract ScheduleDao getScheduleDao();

@@ -1,4 +1,4 @@
-package be.digitalia.companion.viewmodels;
+package at.linuxtage.companion.viewmodels;
 
 import android.app.Application;
 
@@ -7,8 +7,8 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.paging.LivePagedListBuilder;
 import androidx.paging.PagedList;
-import be.digitalia.companion.db.AppDatabase;
-import be.digitalia.companion.model.Person;
+import at.linuxtage.companion.db.AppDatabase;
+import at.linuxtage.companion.model.Person;
 
 public class PersonsViewModel extends AndroidViewModel {
 

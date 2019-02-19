@@ -1,8 +1,8 @@
-package be.digitalia.companion.model;
+package at.linuxtage.companion.model;
 
 import androidx.room.ColumnInfo;
 import androidx.room.TypeConverters;
-import be.digitalia.companion.db.converters.NullableDateTypeConverters;
+import at.linuxtage.companion.db.converters.NullableDateTypeConverters;
 
 import java.util.Date;
 

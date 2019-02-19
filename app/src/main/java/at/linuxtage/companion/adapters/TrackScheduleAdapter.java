@@ -1,4 +1,4 @@
-package be.digitalia.companion.adapters;
+package at.linuxtage.companion.adapters;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -20,10 +20,10 @@ import androidx.core.widget.TextViewCompat;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
-import be.digitalia.companion.R;
-import be.digitalia.companion.model.Event;
-import be.digitalia.companion.model.StatusEvent;
-import be.digitalia.companion.utils.DateUtils;
+import at.linuxtage.companion.R;
+import at.linuxtage.companion.model.Event;
+import at.linuxtage.companion.model.StatusEvent;
+import at.linuxtage.companion.utils.DateUtils;
 
 import java.text.DateFormat;
 import java.util.List;

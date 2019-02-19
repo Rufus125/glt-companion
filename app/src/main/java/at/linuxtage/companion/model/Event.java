@@ -1,7 +1,6 @@
 package at.linuxtage.companion.model;
 
 import java.util.Date;
-import java.util.List;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -12,8 +11,6 @@ import androidx.room.TypeConverters;
 import at.linuxtage.companion.api.GLTUrls;
 import at.linuxtage.companion.db.converters.NullableDateTypeConverters;
 import at.linuxtage.companion.utils.DateUtils;
-
-import java.util.Date;
 
 public class Event implements Parcelable {
 

@@ -1,4 +1,4 @@
-package be.digitalia.companion.adapters;
+package at.linuxtage.companion.adapters;
 
 import android.util.SparseArray;
 import android.view.ViewGroup;

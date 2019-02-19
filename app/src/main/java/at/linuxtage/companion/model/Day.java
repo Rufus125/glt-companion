@@ -6,8 +6,8 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
-import be.digitalia.fosdem.db.converters.NonNullDateTypeConverters;
-import be.digitalia.fosdem.utils.DateUtils;
+import at.linuxtage.companion.db.converters.NonNullDateTypeConverters;
+import at.linuxtage.companion.utils.DateUtils;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -19,7 +19,7 @@ public class Day implements Comparable<Day>, Parcelable {
 
 	public static final String TABLE_NAME = "days";
 
-	private static final DateFormat DAY_DATE_FORMAT = DateUtils.withAustriaTimeZone(new SimpleDateFormat("EEEE", Locale.getDefault()));
+	private static final DateFormat DAY_DATE_FORMAT = DateUtils.withAustrianTimeZone(new SimpleDateFormat("EEEE", Locale.getDefault()));
 
 	@PrimaryKey
 	private int index;

@@ -1,4 +1,4 @@
-package be.digitalia.companion.db.entities;
+package at.linuxtage.companion.db.entities;
 
 import java.util.Date;
 
@@ -7,8 +7,8 @@ import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
-import be.digitalia.companion.db.converters.NullableDateTypeConverters;
-import be.digitalia.companion.model.Event;
+import at.linuxtage.companion.db.converters.NullableDateTypeConverters;
+import at.linuxtage.companion.model.Event;
 
 @Entity(tableName = EventEntity.TABLE_NAME, indices = {
 		@Index(value = {"day_index"}, name = "event_day_index_idx"),

@@ -1,4 +1,4 @@
-package be.digitalia.companion.widgets;
+package at.linuxtage.companion.widgets;
 
 import android.content.Context;
 import android.graphics.RectF;

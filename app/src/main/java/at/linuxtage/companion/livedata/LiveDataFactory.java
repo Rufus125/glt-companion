@@ -1,4 +1,4 @@
-package be.digitalia.companion.livedata;
+package at.linuxtage.companion.livedata;
 
 import android.os.Handler;
 import android.os.Looper;

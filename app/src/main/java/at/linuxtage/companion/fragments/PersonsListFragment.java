@@ -18,11 +18,11 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-at.linuxtage.companion.R;
-at.linuxtage.companion.activities.PersonInfoActivity;
-at.linuxtage.companion.adapters.SimpleItemCallback;
-at.linuxtage.companion.model.Person;
-at.linuxtage.companion.viewmodels.PersonsViewModel;
+import at.linuxtage.companion.R;
+import at.linuxtage.companion.activities.PersonInfoActivity;
+import at.linuxtage.companion.adapters.SimpleItemCallback;
+import at.linuxtage.companion.model.Person;
+import at.linuxtage.companion.viewmodels.PersonsViewModel;
 
 public class PersonsListFragment extends RecyclerViewFragment implements Observer<PagedList<Person>> {
 

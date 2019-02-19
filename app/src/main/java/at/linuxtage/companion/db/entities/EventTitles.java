@@ -1,10 +1,10 @@
-package be.digitalia.companion.db.entities;
+package at.linuxtage.companion.db.entities;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Fts3;
 import androidx.room.PrimaryKey;
-import be.digitalia.companion.model.Event;
+import at.linuxtage.companion.model.Event;
 
 @Fts3
 @Entity(tableName = EventTitles.TABLE_NAME)

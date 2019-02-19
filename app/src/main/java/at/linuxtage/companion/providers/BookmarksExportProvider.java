@@ -16,7 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ShareCompat;
 import at.linuxtage.companion.BuildConfig;
 import at.linuxtage.companion.R;
-import at.linuxtage.companion.api.FosdemUrls;
+import at.linuxtage.companion.api.GLTUrls;
 import at.linuxtage.companion.db.AppDatabase;
 import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.utils.DateUtils;
@@ -148,7 +148,7 @@ public class BookmarksExportProvider extends ContentProvider {
 		private final ICalendarWriter writer;
 
 		private final AppDatabase appDatabase;
-		private final Calendar calendar = Calendar.getInstance(DateUtils.getBelgiumTimeZone(), Locale.US);
+		private final Calendar calendar = Calendar.getInstance(DateUtils.getAustriaTimeZone(), Locale.US);
 		private final DateFormat dateFormat;
 		private final String dtStamp;
 		private final TextUtils.StringSplitter personsSplitter = new StringUtils.SimpleStringSplitter(", ");

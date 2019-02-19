@@ -1,4 +1,4 @@
-package be.digitalia.companion.utils;
+package at.linuxtage.companion.utils;
 
 import android.graphics.RectF;
 import android.text.Layout;

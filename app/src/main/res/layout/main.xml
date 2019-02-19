@@ -33,7 +33,7 @@
 
         </LinearLayout>
 
-        <be.digitalia.fosdem.widgets.MaterialHorizontalProgressBar
+        <at.linuxtage.companion.widgets.MaterialHorizontalProgressBar
             android:id="@+id/progress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

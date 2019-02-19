@@ -25,7 +25,7 @@ import at.linuxtage.companion.utils.DateUtils;
  */
 public class EventsParser extends IterableAbstractPullParser<DetailedEvent> {
 
-	private final DateFormat DATE_FORMAT = DateUtils.withAustriaTimeZone(new SimpleDateFormat("yyyy-MM-dd", Locale.US));
+	private final DateFormat DATE_FORMAT = DateUtils.withAustrianTimeZone(new SimpleDateFormat("yyyy-MM-dd", Locale.US));
 
 	// Calendar used to compute the events time, according to Belgium timezone
 	private final Calendar calendar = Calendar.getInstance(DateUtils.getAustriaTimeZone(), Locale.US);

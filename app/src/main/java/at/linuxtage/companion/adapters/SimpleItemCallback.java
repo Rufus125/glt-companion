@@ -1,4 +1,4 @@
-package be.digitalia.companion.adapters;
+package at.linuxtage.companion.adapters;
 
 import androidx.annotation.NonNull;
 import androidx.core.util.ObjectsCompat;

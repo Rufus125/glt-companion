@@ -1,10 +1,10 @@
-package be.digitalia.companion.db.converters;
+package at.linuxtage.companion.db.converters;
 
 import androidx.room.TypeConverter;
-import be.digitalia.companion.model.Day;
-import be.digitalia.companion.model.Event;
-import be.digitalia.companion.model.Person;
-import be.digitalia.companion.model.Track;
+import at.linuxtage.companion.model.Day;
+import at.linuxtage.companion.model.Event;
+import at.linuxtage.companion.model.Person;
+import at.linuxtage.companion.model.Track;
 
 public class GlobalTypeConverters {
 	@TypeConverter

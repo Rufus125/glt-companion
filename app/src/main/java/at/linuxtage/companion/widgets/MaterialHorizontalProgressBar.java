@@ -1,4 +1,4 @@
-package be.digitalia.companion.widgets;
+package at.linuxtage.companion.widgets;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -11,7 +11,7 @@ import android.util.AttributeSet;
 import android.widget.ProgressBar;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.content.ContextCompat;
-import be.digitalia.companion.R;
+import at.linuxtage.companion.R;
 
 public class MaterialHorizontalProgressBar extends ProgressBar {
 

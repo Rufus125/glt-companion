@@ -1,4 +1,4 @@
-package be.digitalia.companion.viewmodels;
+package at.linuxtage.companion.viewmodels;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
@@ -10,8 +10,8 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 import androidx.paging.LivePagedListBuilder;
 import androidx.paging.PagedList;
-import be.digitalia.companion.db.AppDatabase;
-import be.digitalia.companion.model.StatusEvent;
+import at.linuxtage.companion.db.AppDatabase;
+import at.linuxtage.companion.model.StatusEvent;
 
 public class SearchViewModel extends AndroidViewModel {
 

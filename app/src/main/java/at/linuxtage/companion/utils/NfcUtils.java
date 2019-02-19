@@ -10,7 +10,7 @@ import android.nfc.NfcEvent;
 import android.os.Parcelable;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import be.digitalia.fosdem.model.Event;
+import at.linuxtage.companion.model.Event;
 
 import java.nio.ByteBuffer;
 import java.util.List;

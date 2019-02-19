@@ -6,12 +6,13 @@ It's a fork of [FOSDEM companion](https://github.com/cbeyls/fosdem-companion-and
 
 Donations to Grazer Linuxtage are possible via Bitcoin: [1GLTBBirbj8GZ8uY1gwovZ1QEMjfWu3rWT](bitcoin:1GLTBBirbj8GZ8uY1gwovZ1QEMjfWu3rWT)
 
-<a href="https://f-droid.org/repository/browse/?fdfilter=fosdem&fdid=be.digitalia.fosdem" target="_blank">
-  <img src="https://f-droid.org/badge/get-it-on.png" height="80"/>
-</a>
-<a href="https://play.google.com/store/apps/details?id=be.digitalia.fosdem" target="_blank">
-  <img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" height="80"/>
-</a>
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+     alt="Get it on F-Droid"
+   height="80">](https://f-droid.org/packages/at.linuxtage.companion/)
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
+     alt="Get it on Google Play"
+     height="80">](https://play.google.com/store/apps/details?id=at.linuxtage.companion)
+
 
 ## How to build
 

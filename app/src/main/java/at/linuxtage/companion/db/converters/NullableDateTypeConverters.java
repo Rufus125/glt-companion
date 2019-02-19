@@ -1,4 +1,4 @@
-package be.digitalia.companion.db.converters;
+package at.linuxtage.companion.db.converters;
 
 import java.util.Date;
 

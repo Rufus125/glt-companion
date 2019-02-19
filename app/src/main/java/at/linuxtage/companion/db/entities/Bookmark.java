@@ -1,4 +1,4 @@
-package be.digitalia.companion.db.entities;
+package at.linuxtage.companion.db.entities;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;

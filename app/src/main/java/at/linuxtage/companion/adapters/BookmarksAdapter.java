@@ -26,7 +26,7 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.activities.EventDetailsActivity;
-import at.linuxtage.companion.api.FosdemApi;
+import at.linuxtage.companion.api.GLTApi;
 import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.model.RoomStatus;
 import at.linuxtage.companion.model.Track;
@@ -72,7 +72,7 @@ public class BookmarksAdapter extends ListAdapter<Event, BookmarksAdapter.ViewHo
 		multiChoiceHelper = new MultiChoiceHelper(activity, this);
 		multiChoiceHelper.setMultiChoiceModeListener(multiChoiceModeListener);
 
-		FosdemApi.getRoomStatuses(activity).observe(owner, this);
+		GLTApi.getRoomStatuses(activity).observe(owner, this);
 	}
 
 	@NonNull

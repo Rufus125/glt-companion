@@ -61,7 +61,7 @@ public class RoomImageDialogActivity extends AppCompatActivity {
 				public boolean onMenuItemClick(MenuItem item) {
 					switch (item.getItemId()) {
 					    //TODO this was commented out
-						case R.id.navigation:
+						/*case R.id.navigation:
 							String localNavigationUrl = GLTUrls.getLocalNavigationToLocation(StringUtils.toSlug(roomName));
 							try {
 								new CustomTabsIntent.Builder()
@@ -71,7 +71,7 @@ public class RoomImageDialogActivity extends AppCompatActivity {
 										.launchUrl(context, Uri.parse(localNavigationUrl));
 							} catch (ActivityNotFoundException ignore) {
 							}
-							break;
+							break;*/
 							//until here
 					}
 					return false;

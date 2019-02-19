@@ -34,8 +34,6 @@ import at.linuxtage.companion.model.StatusEvent;
 import at.linuxtage.companion.model.Track;
 import at.linuxtage.companion.utils.DateUtils;
 
-import java.text.DateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 

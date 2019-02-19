@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelProviders;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.activities.PersonInfoActivity;
 import at.linuxtage.companion.api.GLTApi;
+import at.linuxtage.companion.db.AppDatabase;
 import at.linuxtage.companion.model.*;
 import at.linuxtage.companion.utils.ClickableArrowKeyMovementMethod;
 import at.linuxtage.companion.utils.DateUtils;
@@ -29,8 +30,10 @@ import at.linuxtage.companion.viewmodels.EventDetailsViewModel;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class EventDetailsFragment extends Fragment {
@@ -203,11 +206,14 @@ public class EventDetailsFragment extends Fragment {
 	}
 
 	private Intent getShareChooserIntent() {
+
+		Calendar cal = Calendar.getInstance(DateUtils.getAustriaTimeZone(), Locale.US);
+		int year = cal.get(Calendar.YEAR);
 		return ShareCompat.IntentBuilder.from(getActivity())
                 //TODO DB Manager
-				.setSubject(String.format("%1$s (GLT%2$d)", event.getTitle(), DatabaseManager.getInstance().getYear()-2000))
+				.setSubject(String.format("%1$s (GLT%2$d)", event.getTitle(), year-2000))
 				.setType("text/plain")
-				.setText(String.format("%1$s %2$s #GLT%3$d", event.getTitle(), event.getUrl(), DatabaseManager.getInstance().getYear()-2000))
+				.setText(String.format("%1$s %2$s #GLT%3$d", event.getTitle(), event.getUrl(), year-2000))
 				.setChooserTitle(R.string.share)
 				.createChooserIntent();
 	}

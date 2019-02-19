@@ -1,4 +1,4 @@
-package be.digitalia.companion.fragments;
+package at.linuxtage.companion.fragments;
 
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -8,10 +8,10 @@ import androidx.paging.PagedList;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import be.digitalia.companion.R;
-import be.digitalia.companion.adapters.EventsAdapter;
-import be.digitalia.companion.model.StatusEvent;
-import be.digitalia.companion.viewmodels.ExternalBookmarksViewModel;
+import at.linuxtage.companion.R;
+import at.linuxtage.companion.adapters.EventsAdapter;
+import at.linuxtage.companion.model.StatusEvent;
+import at.linuxtage.companion.viewmodels.ExternalBookmarksViewModel;
 
 public class ExternalBookmarksListFragment extends RecyclerViewFragment implements Observer<PagedList<StatusEvent>> {
 

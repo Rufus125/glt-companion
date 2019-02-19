@@ -25,7 +25,7 @@ import at.linuxtage.companion.utils.NfcUtils.CreateNfcAppDataCallback;
 import at.linuxtage.companion.utils.ThemeUtils;
 import at.linuxtage.companion.viewmodels.BookmarkStatusViewModel;
 import at.linuxtage.companion.viewmodels.EventViewModel;
-import be.digitalia.fosdem.widgets.BookmarkStatusAdapter;
+import at.linuxtage.companion.widgets.BookmarkStatusAdapter;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomappbar.BottomAppBar;
 

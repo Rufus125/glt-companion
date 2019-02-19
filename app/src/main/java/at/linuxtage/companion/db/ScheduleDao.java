@@ -1,4 +1,4 @@
-package be.digitalia.companion.db;
+package at.linuxtage.companion.db;
 
 import android.app.SearchManager;
 import android.database.Cursor;
@@ -10,12 +10,12 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.paging.DataSource;
 import androidx.room.*;
-import be.digitalia.companion.alarms.FosdemAlarmManager;
-import be.digitalia.companion.db.entities.EventEntity;
-import be.digitalia.companion.db.entities.EventTitles;
-import be.digitalia.companion.db.entities.EventToPerson;
-import be.digitalia.companion.model.*;
-import be.digitalia.companion.utils.DateUtils;
+import at.linuxtage.companion.alarms.FosdemAlarmManager;
+import at.linuxtage.companion.db.entities.EventEntity;
+import at.linuxtage.companion.db.entities.EventTitles;
+import at.linuxtage.companion.db.entities.EventToPerson;
+import at.linuxtage.companion.model.*;
+import at.linuxtage.companion.utils.DateUtils;
 
 import java.util.*;
 

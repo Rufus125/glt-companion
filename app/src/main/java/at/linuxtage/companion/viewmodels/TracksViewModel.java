@@ -1,4 +1,4 @@
-package be.digitalia.companion.viewmodels;
+package at.linuxtage.companion.viewmodels;
 
 import android.app.Application;
 
@@ -10,9 +10,9 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
-import be.digitalia.companion.db.AppDatabase;
-import be.digitalia.companion.model.Day;
-import be.digitalia.companion.model.Track;
+import at.linuxtage.companion.db.AppDatabase;
+import at.linuxtage.companion.model.Day;
+import at.linuxtage.companion.model.Track;
 
 public class TracksViewModel extends AndroidViewModel {
 

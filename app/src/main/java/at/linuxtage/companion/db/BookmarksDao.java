@@ -1,13 +1,13 @@
-package be.digitalia.companion.db;
+package at.linuxtage.companion.db;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 import androidx.lifecycle.LiveData;
 import androidx.room.*;
-import be.digitalia.companion.alarms.FosdemAlarmManager;
-import be.digitalia.companion.db.entities.Bookmark;
-import be.digitalia.companion.model.AlarmInfo;
-import be.digitalia.companion.model.Event;
+import at.linuxtage.companion.alarms.FosdemAlarmManager;
+import at.linuxtage.companion.db.entities.Bookmark;
+import at.linuxtage.companion.model.AlarmInfo;
+import at.linuxtage.companion.model.Event;
 
 import java.util.List;
 

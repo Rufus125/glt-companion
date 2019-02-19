@@ -1,4 +1,4 @@
-package be.digitalia.companion.viewmodels;
+package at.linuxtage.companion.viewmodels;
 
 import android.app.Application;
 import android.os.AsyncTask;
@@ -9,9 +9,9 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
-import be.digitalia.companion.db.AppDatabase;
-import be.digitalia.companion.livedata.LiveDataFactory;
-import be.digitalia.companion.model.Event;
+import at.linuxtage.companion.db.AppDatabase;
+import at.linuxtage.companion.livedata.LiveDataFactory;
+import at.linuxtage.companion.model.Event;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;

@@ -11,19 +11,19 @@ import androidx.annotation.Nullable;
 
 public class DateUtils {
 
-	private static final TimeZone BELGIUM_TIME_ZONE = TimeZone.getTimeZone("GMT+1");
+	private static final TimeZone AUSTRIA_TIME_ZONE = TimeZone.getTimeZone("GMT+1");
 
-	public static TimeZone getBelgiumTimeZone() {
-		return BELGIUM_TIME_ZONE;
+	public static TimeZone getAustriaTimeZone() {
+		return AUSTRIA_TIME_ZONE;
 	}
 
-	public static DateFormat withBelgiumTimeZone(DateFormat format) {
-		format.setTimeZone(BELGIUM_TIME_ZONE);
+	public static DateFormat withAustrianTimeZone(DateFormat format) {
+		format.setTimeZone(AUSTRIA_TIME_ZONE);
 		return format;
 	}
 
 	public static DateFormat getTimeDateFormat(Context context) {
-		return withBelgiumTimeZone(android.text.format.DateFormat.getTimeFormat(context));
+		return withAustrianTimeZone(android.text.format.DateFormat.getTimeFormat(context));
 	}
 
 	public static int getYear(long timestamp) {
@@ -32,7 +32,7 @@ public class DateUtils {
 
 	public static int getYear(long timestamp, @Nullable Calendar calendar) {
 		if (calendar == null) {
-			calendar = Calendar.getInstance(DateUtils.getBelgiumTimeZone(), Locale.US);
+			calendar = Calendar.getInstance(DateUtils.getAustriaTimeZone(), Locale.US);
 		}
 		calendar.setTimeInMillis(timestamp);
 		return calendar.get(Calendar.YEAR);
