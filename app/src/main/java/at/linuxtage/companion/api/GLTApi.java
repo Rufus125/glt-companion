@@ -1,23 +1,22 @@
 package at.linuxtage.companion.api;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
-import android.content.Intent;
-import android.support.annotation.MainThread;
-import android.support.annotation.WorkerThread;
-import android.support.v4.content.LocalBroadcastManager;
-
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import at.linuxtage.companion.BuildConfig;
-import at.linuxtage.companion.db.DatabaseManager;
-import at.linuxtage.companion.model.Event;
+import android.os.AsyncTask;
+import androidx.annotation.MainThread;
+import androidx.annotation.WorkerThread;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import at.linuxtage.companion.db.AppDatabase;
+import at.linuxtage.companion.db.ScheduleDao;
+import at.linuxtage.companion.livedata.SingleEvent;
+import at.linuxtage.companion.model.DetailedEvent;
+import at.linuxtage.companion.model.DownloadScheduleResult;
 import at.linuxtage.companion.model.RoomStatus;
 import at.linuxtage.companion.parsers.EventsParser;
 import at.linuxtage.companion.utils.HttpUtils;
+
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Main API entry point.
@@ -26,36 +25,41 @@ import at.linuxtage.companion.utils.HttpUtils;
  */
 public class GLTApi {
 
-	// Local broadcasts parameters
-	public static final String ACTION_DOWNLOAD_SCHEDULE_RESULT = BuildConfig.APPLICATION_ID + ".action.DOWNLOAD_SCHEDULE_RESULT";
-	public static final String EXTRA_RESULT = "RESULT";
-
-	public static final int RESULT_ERROR = -1;
-	public static final int RESULT_UP_TO_DATE = -2;
-
-	private static final Lock scheduleLock = new ReentrantLock();
+	private static final AtomicBoolean isLoading = new AtomicBoolean();
 	private static final MutableLiveData<Integer> progress = new MutableLiveData<>();
+	private static final MutableLiveData<SingleEvent<DownloadScheduleResult>> result = new MutableLiveData<>();
 	private static LiveData<Map<String, RoomStatus>> roomStatuses;
 
 	/**
 	 * Download & store the schedule to the database.
 	 * Only one thread at a time will perform the actual action, the other ones will return immediately.
-	 * The result will be sent back in the form of a local broadcast with an ACTION_DOWNLOAD_SCHEDULE_RESULT action.
+	 * The result will be sent back in the consumable Result LiveData.
 	 */
-	@WorkerThread
+	@MainThread
 	public static void downloadSchedule(Context context) {
-		if (!scheduleLock.tryLock()) {
+		if (!isLoading.compareAndSet(false, true)) {
 			// If a download is already in progress, return immediately
 			return;
 		}
+		final Context appContext = context.getApplicationContext();
+		AsyncTask.THREAD_POOL_EXECUTOR.execute(new Runnable() {
+			@Override
+			public void run() {
+				downloadScheduleInternal(appContext);
+				isLoading.set(false);
+			}
+		});
+	}
 
+	@WorkerThread
+	private static void downloadScheduleInternal(Context context) {
 		progress.postValue(-1);
-		int result = RESULT_ERROR;
+		DownloadScheduleResult res = DownloadScheduleResult.error();
 		try {
-			DatabaseManager dbManager = DatabaseManager.getInstance();
+			ScheduleDao scheduleDao = AppDatabase.getInstance(context).getScheduleDao();
 			HttpUtils.HttpResult httpResult = HttpUtils.get(
-					GLTUrls.getSchedule(DatabaseManager.getInstance().getYear()),
-					dbManager.getLastModifiedTag(),
+					GLTUrls.getSchedule(),
+					scheduleDao.getLastModifiedTag(),
 					new HttpUtils.ProgressUpdateListener() {
 						@Override
 						public void onProgressUpdate(int percent) {
@@ -64,13 +68,14 @@ public class GLTApi {
 					});
 			if (httpResult.inputStream == null) {
 				// Nothing to parse, the result is up-to-date.
-				result = RESULT_UP_TO_DATE;
+				res = DownloadScheduleResult.upToDate();
 				return;
 			}
 
 			try {
-				Iterable<Event> events = new EventsParser().parse(httpResult.inputStream);
-				result = dbManager.storeSchedule(events, httpResult.lastModified);
+				Iterable<DetailedEvent> events = new EventsParser().parse(httpResult.inputStream);
+				int count = scheduleDao.storeSchedule(events, httpResult.lastModified);
+				res = DownloadScheduleResult.success(count);
 			} finally {
 				try {
 					httpResult.inputStream.close();
@@ -80,12 +85,10 @@ public class GLTApi {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			res = DownloadScheduleResult.error();
 		} finally {
 			progress.postValue(100);
-			Intent resultIntent = new Intent(ACTION_DOWNLOAD_SCHEDULE_RESULT)
-					.putExtra(EXTRA_RESULT, result);
-			LocalBroadcastManager.getInstance(context).sendBroadcast(resultIntent);
-			scheduleLock.unlock();
+			result.postValue(new SingleEvent<>(res));
 		}
 	}
 	/**
@@ -98,13 +101,17 @@ public class GLTApi {
 		return progress;
 	}
 
+	public static LiveData<SingleEvent<DownloadScheduleResult>> getDownloadScheduleResult() {
+		return result;
+	}
+
 	@MainThread
-	public static LiveData<Map<String, RoomStatus>> getRoomStatuses() {
+	public static LiveData<Map<String, RoomStatus>> getRoomStatuses(Context context) {
 		if (roomStatuses == null) {
 			// The room statuses will only be loaded when the event is live.
 			// RoomStatusesLiveData uses the days from the database to determine it.
-			roomStatuses = new RoomStatusesLiveData(DatabaseManager.getInstance().getDays());
-			// Implementors: replace the above live with the next one to disable room status support
+			roomStatuses = new RoomStatusesLiveData(AppDatabase.getInstance(context).getScheduleDao().getDays());
+			// Implementors: replace the above line with the next one to disable room status support
 			// roomStatuses = new MutableLiveData<>();
 		}
 		return roomStatuses;

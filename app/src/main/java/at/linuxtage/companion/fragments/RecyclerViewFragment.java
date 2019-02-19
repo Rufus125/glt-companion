@@ -2,18 +2,16 @@ package at.linuxtage.companion.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.RecyclerView;
-import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.widgets.ContentLoadingProgressBar;
 
@@ -33,54 +31,34 @@ public class RecyclerViewFragment extends Fragment {
 		ContentLoadingProgressBar progress;
 	}
 
-	private class EmptyViewAwareRecyclerView extends RecyclerView {
+	private ViewHolder mHolder;
+	private boolean mIsProgressBarVisible;
 
-		private final AdapterDataObserver mEmptyObserver = new AdapterDataObserver() {
-			@Override
-			public void onChanged() {
-				updateEmptyViewVisibility();
-			}
-
-			@Override
-			public void onItemRangeInserted(int positionStart, int itemCount) {
-				updateEmptyViewVisibility();
-			}
-
-			@Override
-			public void onItemRangeRemoved(int positionStart, int itemCount) {
-				updateEmptyViewVisibility();
-			}
-		};
-
-		public EmptyViewAwareRecyclerView(Context context) {
-			super(context);
-		}
-
-		public EmptyViewAwareRecyclerView(Context context, @Nullable AttributeSet attrs) {
-			super(context, attrs);
-		}
-
-		public EmptyViewAwareRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyle) {
-			super(context, attrs, defStyle);
+	private final RecyclerView.AdapterDataObserver mEmptyObserver = new RecyclerView.AdapterDataObserver() {
+		@Override
+		public void onChanged() {
+			updateEmptyViewVisibility();
 		}
 
 		@Override
-		public void setAdapter(Adapter adapter) {
-			final Adapter oldAdapter = getAdapter();
-			if (oldAdapter != null) {
-				oldAdapter.unregisterAdapterDataObserver(mEmptyObserver);
-			}
-			super.setAdapter(adapter);
-			if (adapter != null) {
-				adapter.registerAdapterDataObserver(mEmptyObserver);
-			}
-
+		public void onItemRangeInserted(int positionStart, int itemCount) {
 			updateEmptyViewVisibility();
 		}
-	}
 
-	private ViewHolder mHolder;
-	private boolean mIsProgressBarVisible;
+		@Override
+		public void onItemRangeRemoved(int positionStart, int itemCount) {
+			updateEmptyViewVisibility();
+		}
+	};
+
+	/**
+	 * Override this method to provide a custom RecyclerView.
+	 * The default one is using the theme's recyclerViewStyle.
+	 */
+	@NonNull
+	protected RecyclerView onCreateRecyclerView(LayoutInflater inflater, ViewGroup container, @Nullable Bundle savedInstanceState) {
+		return new RecyclerView(inflater.getContext(), null, R.attr.recyclerViewStyle);
+	}
 
 	/**
 	 * Override this method to provide a custom Empty View.
@@ -96,7 +74,7 @@ public class RecyclerViewFragment extends Fragment {
 	}
 
 	/**
-	 * Override this method to setup the RecyclerView (LayoutManager, ItemDecoration, Adapter)
+	 * Override this method to setup the RecyclerView (LayoutManager, ItemDecoration, ...)
 	 */
 	protected void onRecyclerViewCreated(RecyclerView recyclerView, @Nullable Bundle savedInstanceState) {
 	}
@@ -109,7 +87,7 @@ public class RecyclerViewFragment extends Fragment {
 
 		mHolder.container = new FrameLayout(context);
 
-		mHolder.recyclerView = new EmptyViewAwareRecyclerView(context, null, R.attr.recyclerViewStyle);
+		mHolder.recyclerView = onCreateRecyclerView(inflater, mHolder.container, savedInstanceState);
 		mHolder.recyclerView.setId(android.R.id.list);
 		mHolder.recyclerView.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
 		mHolder.recyclerView.setHasFixedSize(true);
@@ -137,8 +115,8 @@ public class RecyclerViewFragment extends Fragment {
 
 	@Override
 	public void onDestroyView() {
-		// Ensure the RecyclerView is properly unregistered as an observer of the adapter
-		mHolder.recyclerView.setAdapter(null);
+		// Ensure the RecyclerView and emptyObserver are properly unregistered from the adapter
+		setAdapter(null);
 		mHolder = null;
 		mIsProgressBarVisible = false;
 		super.onDestroyView();
@@ -148,7 +126,28 @@ public class RecyclerViewFragment extends Fragment {
 	 * Get the fragments's RecyclerView widget.
 	 */
 	public RecyclerView getRecyclerView() {
-		return mHolder.recyclerView;
+		final ViewHolder holder = mHolder;
+		return (holder == null) ? null : holder.recyclerView;
+	}
+
+	/**
+	 * Call this method to set the RecyclerView's adapter while ensuring the empty view
+	 * will show or hide automatically according to the adapter's empty state.
+	 */
+	public void setAdapter(@Nullable RecyclerView.Adapter adapter) {
+		final RecyclerView.Adapter oldAdapter = mHolder.recyclerView.getAdapter();
+		if (oldAdapter == adapter) {
+			return;
+		}
+		if (oldAdapter != null) {
+			oldAdapter.unregisterAdapterDataObserver(mEmptyObserver);
+		}
+		mHolder.recyclerView.setAdapter(adapter);
+		if (adapter != null) {
+			adapter.registerAdapterDataObserver(mEmptyObserver);
+		}
+
+		updateEmptyViewVisibility();
 	}
 
 	/**
@@ -163,7 +162,6 @@ public class RecyclerViewFragment extends Fragment {
 		if (!mIsProgressBarVisible) {
 			RecyclerView.Adapter adapter = mHolder.recyclerView.getAdapter();
 			final boolean isEmptyViewVisible = (adapter != null) && (adapter.getItemCount() == 0);
-			mHolder.recyclerView.setVisibility(isEmptyViewVisible ? View.GONE : View.VISIBLE);
 			mHolder.emptyView.setVisibility(isEmptyViewVisible ? View.VISIBLE : View.GONE);
 		}
 	}
@@ -183,6 +181,7 @@ public class RecyclerViewFragment extends Fragment {
 				mHolder.emptyView.setVisibility(View.GONE);
 				mHolder.progress.show();
 			} else {
+				mHolder.recyclerView.setVisibility(View.VISIBLE);
 				updateEmptyViewVisibility();
 				mHolder.progress.hide();
 			}

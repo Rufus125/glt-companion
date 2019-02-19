@@ -1,30 +1,40 @@
 package at.linuxtage.companion.utils;
 
 import android.content.Context;
+
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import androidx.annotation.Nullable;
+
 public class DateUtils {
 
-	private static final TimeZone AUSTRIA_TIME_ZONE = TimeZone.getTimeZone("Europe/Vienna");
+	private static final TimeZone BELGIUM_TIME_ZONE = TimeZone.getTimeZone("GMT+1");
 
-	private static final DateFormat TIME_DATE_FORMAT = withAustriaTimeZone(SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT, Locale.getDefault()));
-
-	public static TimeZone getAustriaTimeZone() {
-		return AUSTRIA_TIME_ZONE;
+	public static TimeZone getBelgiumTimeZone() {
+		return BELGIUM_TIME_ZONE;
 	}
 
-	public static DateFormat withAustriaTimeZone(DateFormat format) {
-		format.setTimeZone(AUSTRIA_TIME_ZONE);
+	public static DateFormat withBelgiumTimeZone(DateFormat format) {
+		format.setTimeZone(BELGIUM_TIME_ZONE);
 		return format;
 	}
 
-	public static DateFormat getTimeDateFormat() {
-		return TIME_DATE_FORMAT;
-	}
 	public static DateFormat getTimeDateFormat(Context context) {
-		return withAustriaTimeZone(android.text.format.DateFormat.getTimeFormat(context));
+		return withBelgiumTimeZone(android.text.format.DateFormat.getTimeFormat(context));
+	}
+
+	public static int getYear(long timestamp) {
+		return getYear(timestamp, null);
+	}
+
+	public static int getYear(long timestamp, @Nullable Calendar calendar) {
+		if (calendar == null) {
+			calendar = Calendar.getInstance(DateUtils.getBelgiumTimeZone(), Locale.US);
+		}
+		calendar.setTimeInMillis(timestamp);
+		return calendar.get(Calendar.YEAR);
 	}
 }

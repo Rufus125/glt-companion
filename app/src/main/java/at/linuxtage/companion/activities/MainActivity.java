@@ -1,114 +1,112 @@
 package at.linuxtage.companion.activities;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Dialog;
 import android.app.SearchManager;
-import android.arch.lifecycle.Observer;
-import android.content.ActivityNotFoundException;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.content.res.TypedArray;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
+import android.content.*;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.nfc.NdefRecord;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
-import android.support.customtabs.CustomTabsIntent;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.TextViewCompat;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.content.res.AppCompatResources;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
-import android.text.SpannableString;
-import android.text.Spanned;
 import android.text.format.DateUtils;
-import android.text.style.ForegroundColorSpan;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.AnimationUtils;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
-
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Observer;
 import at.linuxtage.companion.BuildConfig;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.api.GLTApi;
-import at.linuxtage.companion.api.GLTUrls;
-import at.linuxtage.companion.db.DatabaseManager;
-import at.linuxtage.companion.fragments.BookmarksListFragment;
-import at.linuxtage.companion.fragments.LiveFragment;
-import at.linuxtage.companion.fragments.MapFragment;
-import at.linuxtage.companion.fragments.PersonsListFragment;
-import at.linuxtage.companion.fragments.TracksFragment;
-import at.linuxtage.companion.widgets.AdapterLinearLayout;
+import at.linuxtage.companion.api.GLTApi;
+import at.linuxtage.companion.db.AppDatabase;
+import at.linuxtage.companion.fragments.*;
+import at.linuxtage.companion.livedata.SingleEvent;
+import at.linuxtage.companion.model.DownloadScheduleResult;
+import at.linuxtage.companion.utils.NfcUtils;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 
 /**
  * Main entry point of the application. Allows to switch between section fragments and update the database.
  *
  * @author Christophe Beyls
  */
-public class MainActivity extends BaseActivity {
+public class MainActivity extends AppCompatActivity implements NfcUtils.CreateNfcAppDataCallback {
 
 	public static final String ACTION_SHORTCUT_BOOKMARKS = BuildConfig.APPLICATION_ID + ".intent.action.SHORTCUT_BOOKMARKS";
 	public static final String ACTION_SHORTCUT_LIVE = BuildConfig.APPLICATION_ID + ".intent.action.SHORTCUT_LIVE";
 
 	private enum Section {
-		TRACKS(TracksFragment.class, R.string.menu_tracks, R.drawable.ic_event_grey600_24dp, true, true),
-		BOOKMARKS(BookmarksListFragment.class, R.string.menu_bookmarks, R.drawable.ic_bookmark_grey600_24dp, false, false),
-		LIVE(LiveFragment.class, R.string.menu_live, R.drawable.ic_play_circle_outline_grey600_24dp, true, false),
-		SPEAKERS(PersonsListFragment.class, R.string.menu_speakers, R.drawable.ic_people_grey600_24dp, false, false),
-		MAP(MapFragment.class, R.string.menu_map, R.drawable.ic_map_grey600_24dp, false, false);
+		TRACKS(R.id.menu_tracks, true, true) {
+			@Override
+			public Fragment createFragment() {
+				return new TracksFragment();
+			}
+		},
+		BOOKMARKS(R.id.menu_bookmarks, false, false) {
+			@Override
+			public Fragment createFragment() {
+				return new BookmarksListFragment();
+			}
+		},
+		LIVE(R.id.menu_live, true, false) {
+			@Override
+			public Fragment createFragment() {
+				return new LiveFragment();
+			}
+		},
+		SPEAKERS(R.id.menu_speakers, false, false) {
+			@Override
+			public Fragment createFragment() {
+				return new PersonsListFragment();
+			}
+		},
+		MAP(R.id.menu_map, false, false) {
+			@Override
+			public Fragment createFragment() {
+				return new MapFragment();
+			}
+		};
 
-		private final String fragmentClassName;
-		private final int titleResId;
-		private final int iconResId;
+		private final int menuItemId;
 		private final boolean extendsAppBar;
 		private final boolean keep;
 
-		Section(Class<? extends Fragment> fragmentClass, int titleResId, int iconResId,
-				boolean extendsAppBar, boolean keep) {
-			this.fragmentClassName = fragmentClass.getName();
-			this.titleResId = titleResId;
-			this.iconResId = iconResId;
+		Section(@IdRes int menuItemId, boolean extendsAppBar, boolean keep) {
+			this.menuItemId = menuItemId;
 			this.extendsAppBar = extendsAppBar;
 			this.keep = keep;
 		}
 
-		public String getFragmentClassName() {
-			return fragmentClassName;
+		@IdRes
+		public int getMenuItemId() {
+			return menuItemId;
 		}
 
-		@StringRes
-		public int getTitleResId() {
-			return titleResId;
-		}
-
-		@DrawableRes
-		public int getIconResId() {
-			return iconResId;
-		}
+		public abstract Fragment createFragment();
 
 		public boolean extendsAppBar() {
 			return extendsAppBar;
@@ -117,12 +115,21 @@ public class MainActivity extends BaseActivity {
 		public boolean shouldKeep() {
 			return keep;
 		}
+
+		@Nullable
+		public static Section fromMenuItemId(@IdRes int menuItemId) {
+			for (Section section : Section.values()) {
+				if (section.menuItemId == menuItemId) {
+					return section;
+				}
+			}
+			return null;
+		}
 	}
 
 	private static final long DATABASE_VALIDITY_DURATION = DateUtils.DAY_IN_MILLIS;
 	private static final long DOWNLOAD_REMINDER_SNOOZE_DURATION = DateUtils.DAY_IN_MILLIS;
 	private static final String PREF_LAST_DOWNLOAD_REMINDER_TIME = "last_download_reminder_time";
-	private static final String STATE_CURRENT_SECTION = "current_section";
 
 	private static final String LAST_UPDATE_DATE_FORMAT = "d MMM yyyy kk:mm:ss";
 
@@ -131,44 +138,37 @@ public class MainActivity extends BaseActivity {
 
 	// Main menu
 	Section currentSection;
-	int pendingMenuSection = -1;
-	int pendingMenuFooter = -1;
+	MenuItem pendingNavigationMenuItem = null;
 	DrawerLayout drawerLayout;
 	private ActionBarDrawerToggle drawerToggle;
 	View mainMenu;
+	private NavigationView navigationView;
 	private TextView lastUpdateTextView;
-	private MainMenuAdapter menuAdapter;
 
 	private MenuItem searchMenuItem;
 
-	private final BroadcastReceiver scheduleDownloadResultReceiver = new BroadcastReceiver() {
+	private final Observer<SingleEvent<DownloadScheduleResult>> scheduleDownloadResultObserver = new Observer<SingleEvent<DownloadScheduleResult>>() {
 
 		@Override
-		public void onReceive(Context context, Intent intent) {
-			int result = intent.getIntExtra(GLTApi.EXTRA_RESULT, GLTApi.RESULT_ERROR);
-			String message;
-			switch (result) {
-				case GLTApi.RESULT_ERROR:
-					message = getString(R.string.schedule_loading_error);
-					break;
-				case GLTApi.RESULT_UP_TO_DATE:
-					message = getString(R.string.events_download_up_to_date);
-					break;
-				case 0:
-					message = getString(R.string.events_download_empty);
-					break;
-				default:
-					message = getResources().getQuantityString(R.plurals.events_download_completed, result, result);
+		public void onChanged(SingleEvent<DownloadScheduleResult> singleEvent) {
+			final DownloadScheduleResult result = singleEvent.consume();
+			if (result == null) {
+				return;
 			}
-			Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
-		}
-	};
-
-	private final BroadcastReceiver scheduleRefreshedReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			updateLastUpdateTime();
+			String message;
+			if (result.isError()) {
+				message = getString(R.string.schedule_loading_error);
+			} else if (result.isUpToDate()) {
+				message = getString(R.string.events_download_up_to_date);
+			} else {
+				int eventsCount = result.getEventsCount();
+				if (eventsCount == 0) {
+					message = getString(R.string.events_download_empty);
+				} else {
+					message = getResources().getQuantityString(R.plurals.events_download_completed, eventsCount, eventsCount);
+				}
+			}
+			Snackbar.make(findViewById(R.id.content), message, Snackbar.LENGTH_LONG).show();
 		}
 	};
 
@@ -177,14 +177,14 @@ public class MainActivity extends BaseActivity {
 		@NonNull
 		@Override
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
-			return new AlertDialog.Builder(getActivity())
+			return new AlertDialog.Builder(getContext())
 					.setTitle(R.string.download_reminder_title)
 					.setMessage(R.string.download_reminder_message)
 					.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							((MainActivity) getActivity()).startDownloadSchedule();
+							FosdemApi.downloadSchedule(getContext());
 						}
 
 					}).setNegativeButton(android.R.string.cancel, null)
@@ -225,25 +225,35 @@ public class MainActivity extends BaseActivity {
 						// Hide the progress bar with a fill and fade out animation
 						progressBar.setIndeterminate(false);
 						progressBar.setProgress(100);
-						progressBar.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_out));
-						progressBar.setVisibility(View.GONE);
+						progressBar.animate()
+								.alpha(0f)
+								.withLayer()
+								.setListener(new AnimatorListenerAdapter() {
+									@Override
+									public void onAnimationEnd(Animator animation) {
+										progressBar.setVisibility(View.GONE);
+										progressBar.setAlpha(1f);
+									}
+								});
 					}
 				}
 			}
 		});
 
+		// Monitor the schedule download result
+		FosdemApi.getDownloadScheduleResult().observe(this, scheduleDownloadResultObserver);
+
 		// Setup drawer layout
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		drawerLayout = findViewById(R.id.drawer_layout);
-		drawerLayout.setDrawerShadow(ContextCompat.getDrawable(this, R.drawable.drawer_shadow), GravityCompat.START);
+		drawerLayout.setDrawerShadow(ContextCompat.getDrawable(this, R.drawable.drawer_shadow_start), GravityCompat.START);
 		drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.main_menu, R.string.close_menu) {
 
 			@Override
 			public void onDrawerStateChanged(int newState) {
 				super.onDrawerStateChanged(newState);
 				if (newState == DrawerLayout.STATE_DRAGGING) {
-					pendingMenuSection = -1;
-					pendingMenuFooter = -1;
+					pendingNavigationMenuItem = null;
 				}
 			}
 
@@ -257,13 +267,9 @@ public class MainActivity extends BaseActivity {
 			@Override
 			public void onDrawerClosed(View drawerView) {
 				super.onDrawerClosed(drawerView);
-				if (pendingMenuSection != -1) {
-					selectMenuSection(pendingMenuSection);
-					pendingMenuSection = -1;
-				}
-				if (pendingMenuFooter != -1) {
-					selectMenuFooter(pendingMenuFooter);
-					pendingMenuFooter = -1;
+				if (pendingNavigationMenuItem != null) {
+					handleNavigationMenuItem(pendingNavigationMenuItem);
+					pendingNavigationMenuItem = null;
 				}
 			}
 		};
@@ -275,20 +281,30 @@ public class MainActivity extends BaseActivity {
 
 		// Setup Main menu
 		mainMenu = findViewById(R.id.main_menu);
-		final AdapterLinearLayout sectionsList = findViewById(R.id.sections);
-		menuAdapter = new MainMenuAdapter(getLayoutInflater());
-		sectionsList.setAdapter(menuAdapter);
-		mainMenu.findViewById(R.id.settings).setOnClickListener(menuFooterClickListener);
-		mainMenu.findViewById(R.id.volunteer).setOnClickListener(menuFooterClickListener);
-
-		LocalBroadcastManager.getInstance(this).registerReceiver(scheduleRefreshedReceiver, new IntentFilter(DatabaseManager.ACTION_SCHEDULE_REFRESHED));
+		// Forward window insets to NavigationView
+		ViewCompat.setOnApplyWindowInsetsListener(mainMenu, new OnApplyWindowInsetsListener() {
+			@Override
+			public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
+				return insets;
+			}
+		});
+		navigationView = findViewById(R.id.nav_view);
+		navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+			@Override
+			public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+				pendingNavigationMenuItem = menuItem;
+				drawerLayout.closeDrawer(mainMenu);
+				return true;
+			}
+		});
 
 		// Last update date, below the list
 		lastUpdateTextView = mainMenu.findViewById(R.id.last_update);
-		updateLastUpdateTime();
+		AppDatabase.getInstance(this).getScheduleDao().getLastUpdateTime()
+				.observe(this, lastUpdateTimeObserver);
 
-		// Restore current section
 		if (savedInstanceState == null) {
+			// Select initial section
 			currentSection = Section.TRACKS;
 			String action = getIntent().getAction();
 			if (action != null) {
@@ -301,49 +317,49 @@ public class MainActivity extends BaseActivity {
 						break;
 				}
 			}
+			navigationView.setCheckedItem(currentSection.getMenuItemId());
 
-			String fragmentClassName = currentSection.getFragmentClassName();
-			Fragment f = Fragment.instantiate(this, fragmentClassName);
-			getSupportFragmentManager().beginTransaction().add(R.id.content, f, fragmentClassName).commit();
-		} else {
-			currentSection = Section.values()[savedInstanceState.getInt(STATE_CURRENT_SECTION)];
+			getSupportFragmentManager().beginTransaction()
+					.add(R.id.content, currentSection.createFragment(), currentSection.name())
+					.commit();
 		}
-		// Ensure the current section is visible in the menu
-		sectionsList.post(new Runnable() {
-			@Override
-			public void run() {
-				if (sectionsList.getChildCount() > currentSection.ordinal()) {
-					ScrollView mainMenuScrollView = findViewById(R.id.main_menu_scroll);
-					int requiredScroll = sectionsList.getTop()
-							+ sectionsList.getChildAt(currentSection.ordinal()).getBottom()
-							- mainMenuScrollView.getHeight();
-					mainMenuScrollView.scrollTo(0, Math.max(0, requiredScroll));
-				}
-			}
-		});
-		updateActionBar();
+
+		NfcUtils.setAppDataPushMessageCallbackIfAvailable(this, this);
 	}
 
-	private void updateActionBar() {
-		setTitle(currentSection.getTitleResId());
+	private void updateActionBar(@NonNull Section section, @NonNull MenuItem menuItem) {
+		setTitle(menuItem.getTitle());
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-			toolbar.setElevation(currentSection.extendsAppBar()
+			toolbar.setElevation(section.extendsAppBar()
 					? 0f : getResources().getDimension(R.dimen.toolbar_elevation));
 		}
 	}
 
-	void updateLastUpdateTime() {
-		long lastUpdateTime = DatabaseManager.getInstance().getLastUpdateTime();
-		lastUpdateTextView.setText(getString(R.string.last_update,
-				(lastUpdateTime == -1L)
-						? getString(R.string.never)
-						: android.text.format.DateFormat.format(LAST_UPDATE_DATE_FORMAT, lastUpdateTime)));
-	}
+	private final Observer<Long> lastUpdateTimeObserver = new Observer<Long>() {
+		@Override
+		public void onChanged(Long lastUpdateTime) {
+			lastUpdateTextView.setText(getString(R.string.last_update,
+					(lastUpdateTime == -1L)
+							? getString(R.string.never)
+							: android.text.format.DateFormat.format(LAST_UPDATE_DATE_FORMAT, lastUpdateTime)));
+		}
+	};
 
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
 		drawerToggle.syncState();
+
+		// Restore current section from NavigationView
+		final MenuItem menuItem = navigationView.getCheckedItem();
+		if (menuItem != null) {
+			if (currentSection == null) {
+				currentSection = Section.fromMenuItemId(menuItem.getItemId());
+			}
+			if (currentSection != null) {
+				updateActionBar(currentSection, menuItem);
+			}
+		}
 	}
 
 	@Override
@@ -358,10 +374,13 @@ public class MainActivity extends BaseActivity {
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		// Ensure no fragment transaction attempt will occur after onSaveInstanceState()
-		pendingMenuSection = -1;
-		pendingMenuFooter = -1;
+		if (pendingNavigationMenuItem != null) {
+			pendingNavigationMenuItem = null;
+			if (currentSection != null) {
+				navigationView.setCheckedItem(currentSection.getMenuItemId());
+			}
+		}
 		super.onSaveInstanceState(outState);
-		outState.putInt(STATE_CURRENT_SECTION, currentSection.ordinal());
 	}
 
 	@Override
@@ -374,7 +393,8 @@ public class MainActivity extends BaseActivity {
 
 		// Download reminder
 		long now = System.currentTimeMillis();
-		long time = DatabaseManager.getInstance().getLastUpdateTime();
+		Long timeValue = AppDatabase.getInstance(this).getScheduleDao().getLastUpdateTime().getValue();
+		long time = (timeValue == null) ? -1L : timeValue;
 		if ((time == -1L) || (time < (now - DATABASE_VALIDITY_DURATION))) {
 			SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 			time = prefs.getLong(PREF_LAST_DOWNLOAD_REMINDER_TIME, -1L);
@@ -397,15 +417,7 @@ public class MainActivity extends BaseActivity {
 			searchMenuItem.collapseActionView();
 		}
 
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(scheduleDownloadResultReceiver);
-
 		super.onStop();
-	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(scheduleRefreshedReceiver);
 	}
 
 	@Override
@@ -437,96 +449,40 @@ public class MainActivity extends BaseActivity {
 					item.setIcon(icon);
 					((Animatable) icon).start();
 				}
-				startDownloadSchedule();
+				FosdemApi.downloadSchedule(this);
 				return true;
 		}
 		return false;
 	}
 
-	public void startDownloadSchedule() {
-		new DownloadScheduleAsyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-	}
-
-	private static class DownloadScheduleAsyncTask extends AsyncTask<Void, Void, Void> {
-
-		private final Context appContext;
-
-		public DownloadScheduleAsyncTask(Context context) {
-			appContext = context.getApplicationContext();
-		}
-
-		@Override
-		protected Void doInBackground(Void... args) {
-			GLTApi.downloadSchedule(appContext);
-			return null;
-		}
-	}
-
 	// MAIN MENU
 
-	private class MainMenuAdapter extends AdapterLinearLayout.Adapter<Section> {
-
-		private final Section[] sections = Section.values();
-		private final LayoutInflater inflater;
-		private final int currentSectionForegroundColor;
-
-		public MainMenuAdapter(LayoutInflater inflater) {
-			this.inflater = inflater;
-			// Select the primary color to tint the current section
-			TypedArray a = getTheme().obtainStyledAttributes(new int[]{R.attr.colorPrimary});
-			try {
-				currentSectionForegroundColor = a.getColor(0, Color.TRANSPARENT);
-			} finally {
-				a.recycle();
+	void handleNavigationMenuItem(@NonNull MenuItem menuItem) {
+		final int menuItemId = menuItem.getItemId();
+		final Section section = Section.fromMenuItemId(menuItemId);
+		if (section != null) {
+			selectMenuSection(section, menuItem);
+		} else {
+			switch (menuItemId) {
+				case R.id.menu_settings:
+					startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+					overridePendingTransition(R.anim.slide_in_right, R.anim.partial_zoom_out);
+					break;
+				case R.id.menu_volunteer:
+					try {
+						new CustomTabsIntent.Builder()
+								.setToolbarColor(ContextCompat.getColor(this, R.color.color_primary))
+								.setShowTitle(true)
+								.build()
+								.launchUrl(this, Uri.parse(FosdemUrls.getVolunteer()));
+					} catch (ActivityNotFoundException ignore) {
+					}
+					break;
 			}
-		}
-
-		@Override
-		public int getCount() {
-			return sections.length;
-		}
-
-		@Override
-		public Section getItem(int position) {
-			return sections[position];
-		}
-
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-			if (convertView == null) {
-				convertView = inflater.inflate(R.layout.item_main_menu, parent, false);
-				convertView.setOnClickListener(sectionClickListener);
-			}
-
-			Section section = getItem(position);
-			convertView.setSelected(section == currentSection);
-
-			TextView tv = convertView.findViewById(R.id.section_text);
-			SpannableString sectionTitle = new SpannableString(getString(section.getTitleResId()));
-			Drawable sectionIcon = AppCompatResources.getDrawable(MainActivity.this, section.getIconResId());
-			if (section == currentSection) {
-				// Special color for the current section
-				sectionTitle.setSpan(new ForegroundColorSpan(currentSectionForegroundColor), 0, sectionTitle.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-				// We need to mutate the drawable before applying the ColorFilter, or else all the similar drawable instances will be tinted.
-				sectionIcon.mutate().setColorFilter(currentSectionForegroundColor, PorterDuff.Mode.SRC_IN);
-			}
-			tv.setText(sectionTitle);
-			TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(tv, sectionIcon, null, null, null);
-
-			return convertView;
 		}
 	}
 
-	final View.OnClickListener sectionClickListener = new View.OnClickListener() {
-		@Override
-		public void onClick(View view) {
-			pendingMenuSection = ((ViewGroup) view.getParent()).indexOfChild(view);
-			drawerLayout.closeDrawer(mainMenu);
-		}
-	};
-
-	void selectMenuSection(int position) {
-		Section section = menuAdapter.getItem(position);
+	void selectMenuSection(@NonNull Section section, @NonNull MenuItem menuItem) {
 		if (section != currentSection) {
 			// Switch to new section
 			FragmentManager fm = getSupportFragmentManager();
@@ -539,46 +495,26 @@ public class MainActivity extends BaseActivity {
 					ft.remove(f);
 				}
 			}
-			String fragmentClassName = section.getFragmentClassName();
-			if (section.shouldKeep() && ((f = fm.findFragmentByTag(fragmentClassName)) != null)) {
+			if (section.shouldKeep() && ((f = fm.findFragmentByTag(section.name())) != null)) {
 				ft.attach(f);
 			} else {
-				f = Fragment.instantiate(MainActivity.this, fragmentClassName);
-				ft.add(R.id.content, f, fragmentClassName);
+				ft.add(R.id.content, section.createFragment(), section.name());
 			}
 			ft.commit();
 
 			currentSection = section;
-			updateActionBar();
-			menuAdapter.notifyDataSetChanged();
+			updateActionBar(section, menuItem);
 		}
 	}
 
-	private final View.OnClickListener menuFooterClickListener = new View.OnClickListener() {
-
-		@Override
-		public void onClick(View view) {
-			pendingMenuFooter = view.getId();
-			drawerLayout.closeDrawer(mainMenu);
+	@Nullable
+	@Override
+	public NdefRecord createNfcAppData() {
+		// Delegate to the currently displayed fragment if it provides NFC data
+		Fragment f = getSupportFragmentManager().findFragmentById(R.id.content);
+		if (f instanceof NfcUtils.CreateNfcAppDataCallback) {
+			return ((NfcUtils.CreateNfcAppDataCallback) f).createNfcAppData();
 		}
-	};
-
-	void selectMenuFooter(int id) {
-		switch (id) {
-			case R.id.settings:
-				startActivity(new Intent(MainActivity.this, SettingsActivity.class));
-				overridePendingTransition(R.anim.slide_in_right, R.anim.partial_zoom_out);
-				break;
-			case R.id.volunteer:
-				try {
-					new CustomTabsIntent.Builder()
-							.setToolbarColor(ContextCompat.getColor(this, R.color.color_primary))
-							.setShowTitle(true)
-							.build()
-							.launchUrl(this, Uri.parse(GLTUrls.getVolunteer()));
-				} catch (ActivityNotFoundException ignore) {
-				}
-				break;
-		}
+		return null;
 	}
 }

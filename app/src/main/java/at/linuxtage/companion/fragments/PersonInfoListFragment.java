@@ -2,33 +2,27 @@ package at.linuxtage.companion.fragments;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.customtabs.CustomTabsIntent;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.Loader;
-import android.support.v7.widget.ConcatAdapter;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-
+import android.view.*;
+import androidx.annotation.NonNull;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.paging.PagedList;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import at.linuxtage.companion.R;
+import at.linuxtage.companion.adapters.ConcatAdapter;
 import at.linuxtage.companion.adapters.EventsAdapter;
-import at.linuxtage.companion.db.DatabaseManager;
-import at.linuxtage.companion.loaders.SimpleCursorLoader;
 import at.linuxtage.companion.model.Person;
+import at.linuxtage.companion.model.StatusEvent;
+import at.linuxtage.companion.utils.DateUtils;
+import at.linuxtage.companion.viewmodels.PersonInfoViewModel;
 
-public class PersonInfoListFragment extends RecyclerViewFragment implements LoaderCallbacks<Cursor> {
+public class PersonInfoListFragment extends RecyclerViewFragment implements Observer<PagedList<StatusEvent>> {
 
-	private static final int PERSON_EVENTS_LOADER_ID = 1;
 	private static final String ARG_PERSON = "person";
 
 	private Person person;
@@ -46,7 +40,7 @@ public class PersonInfoListFragment extends RecyclerViewFragment implements Load
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		adapter = new EventsAdapter(getActivity(), this);
+		adapter = new EventsAdapter(getContext(), this);
 		person = getArguments().getParcelable(ARG_PERSON);
 		setHasOptionsMenu(true);
 	}
@@ -60,17 +54,30 @@ public class PersonInfoListFragment extends RecyclerViewFragment implements Load
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.more_info:
-				String url = person.getUrl();
-				if (url != null) {
-					try {
-						Activity context = getActivity();
-						new CustomTabsIntent.Builder()
-								.setToolbarColor(ContextCompat.getColor(context, R.color.color_primary))
-								.setStartAnimations(context, R.anim.slide_in_right, R.anim.slide_out_left)
-								.setExitAnimations(context, R.anim.slide_in_left, R.anim.slide_out_right)
-								.build()
-								.launchUrl(context, Uri.parse(url));
-					} catch (ActivityNotFoundException ignore) {
+				// Look for the first non-placeholder event in the paged list
+				final PagedList<StatusEvent> list = adapter.getCurrentList();
+				final int size = (list == null) ? 0 : list.size();
+				StatusEvent statusEvent = null;
+				for (int i = 0; i < size; ++i) {
+					statusEvent = list.get(i);
+					if (statusEvent != null) {
+						break;
+					}
+				}
+				if (statusEvent != null) {
+					final int year = DateUtils.getYear(statusEvent.getEvent().getDay().getDate().getTime());
+					String url = person.getUrl(year);
+					if (url != null) {
+						try {
+							Activity context = getActivity();
+							new CustomTabsIntent.Builder()
+									.setToolbarColor(ContextCompat.getColor(context, R.color.color_primary))
+									.setStartAnimations(context, R.anim.slide_in_right, R.anim.slide_out_left)
+									.setExitAnimations(context, R.anim.slide_in_left, R.anim.slide_out_right)
+									.build()
+									.launchUrl(context, Uri.parse(url));
+						} catch (ActivityNotFoundException ignore) {
+						}
 					}
 				}
 				return true;
@@ -86,51 +93,25 @@ public class PersonInfoListFragment extends RecyclerViewFragment implements Load
 		recyclerView.setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
 
 		recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
-		recyclerView.setAdapter(new ConcatAdapter(new HeaderAdapter(), adapter));
 	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
+		setAdapter(new ConcatAdapter(new HeaderAdapter(), adapter));
 		setEmptyText(getString(R.string.no_data));
 		setProgressBarVisible(true);
 
-		getLoaderManager().initLoader(PERSON_EVENTS_LOADER_ID, null, this);
-	}
-
-	private static class PersonEventsLoader extends SimpleCursorLoader {
-
-		private final Person person;
-
-		public PersonEventsLoader(Context context, Person person) {
-			super(context);
-			this.person = person;
-		}
-
-		@Override
-		protected Cursor getCursor() {
-			return DatabaseManager.getInstance().getEvents(person);
-		}
+		final PersonInfoViewModel viewModel = ViewModelProviders.of(this).get(PersonInfoViewModel.class);
+		viewModel.setPerson(person);
+		viewModel.getEvents().observe(getViewLifecycleOwner(), this);
 	}
 
 	@Override
-	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return new PersonEventsLoader(getActivity(), person);
-	}
-
-	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-		if (data != null) {
-			adapter.swapCursor(data);
-		}
-
+	public void onChanged(PagedList<StatusEvent> events) {
+		adapter.submitList(events);
 		setProgressBarVisible(false);
-	}
-
-	@Override
-	public void onLoaderReset(Loader<Cursor> loader) {
-		adapter.swapCursor(null);
 	}
 
 	static class HeaderAdapter extends RecyclerView.Adapter<HeaderAdapter.ViewHolder> {
@@ -145,20 +126,21 @@ public class PersonInfoListFragment extends RecyclerViewFragment implements Load
 			return R.layout.header_person_info;
 		}
 
+		@NonNull
 		@Override
-		public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-			View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.header_person_info, null);
+		public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+			View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.header_person_info, parent, false);
 			return new ViewHolder(view);
 		}
 
 		@Override
-		public void onBindViewHolder(ViewHolder holder, int position) {
+		public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 			// Nothing to bind
 		}
 
 		static class ViewHolder extends RecyclerView.ViewHolder {
 
-			public ViewHolder(View itemView) {
+			ViewHolder(View itemView) {
 				super(itemView);
 			}
 		}

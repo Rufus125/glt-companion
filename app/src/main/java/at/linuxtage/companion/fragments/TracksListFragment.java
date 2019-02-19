@@ -2,33 +2,31 @@ package at.linuxtage.companion.fragments;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.Loader;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.*;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.activities.TrackScheduleActivity;
-import at.linuxtage.companion.db.DatabaseManager;
-import at.linuxtage.companion.loaders.SimpleCursorLoader;
+import at.linuxtage.companion.adapters.SimpleItemCallback;
 import at.linuxtage.companion.model.Day;
 import at.linuxtage.companion.model.Track;
-import at.linuxtage.companion.adapters.RecyclerViewCursorAdapter;
+import at.linuxtage.companion.viewmodels.TracksViewModel;
 
-public class TracksListFragment extends RecyclerViewFragment implements LoaderCallbacks<Cursor> {
+import java.util.List;
 
-	private static final int TRACKS_LOADER_ID = 1;
+public class TracksListFragment extends RecyclerViewFragment implements Observer<List<Track>> {
+
 	private static final String ARG_DAY = "day";
 
-	Day day;
+	private Day day;
 	private TracksAdapter adapter;
 
 	public static TracksListFragment newInstance(Day day) {
@@ -42,8 +40,8 @@ public class TracksListFragment extends RecyclerViewFragment implements LoaderCa
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		adapter = new TracksAdapter();
 		day = getArguments().getParcelable(ARG_DAY);
+		adapter = new TracksAdapter(day);
 	}
 
 	@Override
@@ -55,85 +53,60 @@ public class TracksListFragment extends RecyclerViewFragment implements LoaderCa
 
 		recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
 		recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL));
-		recyclerView.setAdapter(adapter);
 	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
+		setAdapter(adapter);
 		setEmptyText(getString(R.string.no_data));
 		setProgressBarVisible(true);
 
-		getLoaderManager().initLoader(TRACKS_LOADER_ID, null, this);
-	}
-
-	private static class TracksLoader extends SimpleCursorLoader {
-
-		private final Day day;
-
-		public TracksLoader(Context context, Day day) {
-			super(context);
-			this.day = day;
-		}
-
-		@Override
-		protected Cursor getCursor() {
-			return DatabaseManager.getInstance().getTracks(day);
-		}
+		final TracksViewModel viewModel = ViewModelProviders.of(this).get(TracksViewModel.class);
+		viewModel.setDay(day);
+		viewModel.getTracks().observe(getViewLifecycleOwner(), this);
 	}
 
 	@Override
-	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return new TracksLoader(getActivity(), day);
-	}
-
-	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-		if (data != null) {
-			adapter.swapCursor(data);
-		}
-
+	public void onChanged(List<Track> tracks) {
+		adapter.submitList(tracks);
 		setProgressBarVisible(false);
 	}
 
-	@Override
-	public void onLoaderReset(Loader<Cursor> loader) {
-		adapter.swapCursor(null);
-	}
+	private static class TracksAdapter extends ListAdapter<Track, TrackViewHolder> {
 
-	private class TracksAdapter extends RecyclerViewCursorAdapter<TrackViewHolder> {
+		private static final DiffUtil.ItemCallback<Track> DIFF_CALLBACK = new SimpleItemCallback<Track>() {
+			@Override
+			public boolean areContentsTheSame(@NonNull Track oldItem, @NonNull Track newItem) {
+				return oldItem.getName().equals(newItem.getName())
+						&& oldItem.getType() == newItem.getType();
+			}
+		};
 
-		private final LayoutInflater inflater;
+		private final Day day;
 
-		public TracksAdapter() {
-			inflater = LayoutInflater.from(getContext());
+		TracksAdapter(Day day) {
+			super(DIFF_CALLBACK);
+			this.day = day;
 		}
 
+		@NonNull
 		@Override
-		public Track getItem(int position) {
-			return DatabaseManager.toTrack((Cursor) super.getItem(position));
-		}
-
-		@Override
-		public TrackViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-			View view = inflater.inflate(R.layout.simple_list_item_2_material, parent, false);
+		public TrackViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+			View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.simple_list_item_2_material, parent, false);
 			return new TrackViewHolder(view);
 		}
 
 		@Override
-		public void onBindViewHolder(TrackViewHolder holder, Cursor cursor) {
-			holder.day = day;
-			holder.track = DatabaseManager.toTrack(cursor, holder.track);
-			holder.name.setText(holder.track.getName());
-			holder.type.setText(holder.track.getType().getNameResId());
-			holder.type.setTextColor(ContextCompat.getColor(holder.type.getContext(), holder.track.getType().getColorResId()));
+		public void onBindViewHolder(@NonNull TrackViewHolder holder, int position) {
+			holder.bind(day, getItem(position));
 		}
 	}
 
 	static class TrackViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-		TextView name;
-		TextView type;
+		final TextView name;
+		final TextView type;
 
 		Day day;
 		Track track;
@@ -143,6 +116,14 @@ public class TracksListFragment extends RecyclerViewFragment implements LoaderCa
 			name = itemView.findViewById(android.R.id.text1);
 			type = itemView.findViewById(android.R.id.text2);
 			itemView.setOnClickListener(this);
+		}
+
+		void bind(@NonNull Day day, @NonNull Track track) {
+			this.day = day;
+			this.track = track;
+			name.setText(track.getName());
+			type.setText(track.getType().getNameResId());
+			type.setTextColor(ContextCompat.getColor(type.getContext(), track.getType().getColorResId()));
 		}
 
 		@Override

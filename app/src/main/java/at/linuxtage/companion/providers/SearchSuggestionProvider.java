@@ -5,13 +5,13 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import at.linuxtage.companion.db.DatabaseManager;
+import androidx.annotation.NonNull;
+import at.linuxtage.companion.db.AppDatabase;
 
 /**
  * Simple content provider responsible for search suggestions.
- * 
+ *
  * @author Christophe Beyls
  */
 public class SearchSuggestionProvider extends ContentProvider {
@@ -59,6 +59,6 @@ public class SearchSuggestionProvider extends ContentProvider {
 		String limitParam = uri.getQueryParameter("limit");
 		int limit = TextUtils.isEmpty(limitParam) ? DEFAULT_MAX_RESULTS : Integer.parseInt(limitParam);
 
-		return DatabaseManager.getInstance().getSearchSuggestionResults(query, limit);
+		return AppDatabase.getInstance(getContext()).getScheduleDao().getSearchSuggestionResults(query, limit);
 	}
 }

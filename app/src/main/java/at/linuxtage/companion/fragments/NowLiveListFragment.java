@@ -1,12 +1,11 @@
 package at.linuxtage.companion.fragments;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.paging.PagedList;
 import at.linuxtage.companion.R;
-import at.linuxtage.companion.db.DatabaseManager;
-import at.linuxtage.companion.loaders.BaseLiveLoader;
-import android.content.Context;
-import android.database.Cursor;
-import android.os.Bundle;
-import android.support.v4.content.Loader;
+import at.linuxtage.companion.model.StatusEvent;
+import at.linuxtage.companion.viewmodels.LiveViewModel;
 
 public class NowLiveListFragment extends BaseLiveListFragment {
 
@@ -15,21 +14,9 @@ public class NowLiveListFragment extends BaseLiveListFragment {
 		return getString(R.string.now_empty);
 	}
 
+	@NonNull
 	@Override
-	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return new NowLiveLoader(getActivity());
-	}
-
-	private static class NowLiveLoader extends BaseLiveLoader {
-
-		public NowLiveLoader(Context context) {
-			super(context);
-		}
-
-		@Override
-		protected Cursor getCursor() {
-			long now = System.currentTimeMillis();
-			return DatabaseManager.getInstance().getEvents(-1L, now, now, false);
-		}
+	protected LiveData<PagedList<StatusEvent>> getDataSource(@NonNull LiveViewModel viewModel) {
+		return viewModel.getEventsInProgress();
 	}
 }

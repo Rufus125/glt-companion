@@ -1,17 +1,15 @@
 package at.linuxtage.companion.alarms;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.preference.PreferenceManager;
-import android.support.v4.content.LocalBroadcastManager;
-import at.linuxtage.companion.db.DatabaseManager;
+import androidx.preference.PreferenceManager;
+import at.linuxtage.companion.fragments.SettingsFragment;
+import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.services.AlarmIntentService;
 
-import at.linuxtage.companion.activities.SettingsActivity;
+import java.util.Date;
 
 /**
  * This class monitors bookmarks and preferences changes to dispatch alarm update work to AlarmIntentService.
@@ -23,26 +21,7 @@ public class FosdemAlarmManager implements OnSharedPreferenceChangeListener {
 	private static FosdemAlarmManager instance;
 
 	private final Context context;
-	private boolean isEnabled;
-
-	private final BroadcastReceiver scheduleRefreshedReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			// When the schedule DB is updated, update the alarms too
-			startUpdateAlarms();
-		}
-	};
-
-	private final BroadcastReceiver bookmarksReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			// Dispatch the Bookmark broadcasts to the service
-			Intent serviceIntent = new Intent(intent);
-			AlarmIntentService.enqueueWork(context, serviceIntent);
-		}
-	};
+	private volatile boolean isEnabled;
 
 	public static void init(Context context) {
 		if (instance == null) {
@@ -57,10 +36,7 @@ public class FosdemAlarmManager implements OnSharedPreferenceChangeListener {
 	private FosdemAlarmManager(Context context) {
 		this.context = context;
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-		isEnabled = sharedPreferences.getBoolean(SettingsActivity.KEY_PREF_NOTIFICATIONS_ENABLED, false);
-		if (isEnabled) {
-			registerReceivers();
-		}
+		isEnabled = sharedPreferences.getBoolean(SettingsFragment.KEY_PREF_NOTIFICATIONS_ENABLED, false);
 		sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 	}
 
@@ -68,38 +44,48 @@ public class FosdemAlarmManager implements OnSharedPreferenceChangeListener {
 		return isEnabled;
 	}
 
-	@Override
-	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		if (SettingsActivity.KEY_PREF_NOTIFICATIONS_ENABLED.equals(key)) {
-			isEnabled = sharedPreferences.getBoolean(SettingsActivity.KEY_PREF_NOTIFICATIONS_ENABLED, false);
-			if (isEnabled) {
-				registerReceivers();
-				startUpdateAlarms();
-			} else {
-				unregisterReceivers();
-				startDisableAlarms();
-			}
-		} else if (SettingsActivity.KEY_PREF_NOTIFICATIONS_DELAY.equals(key)) {
+	public void onScheduleRefreshed() {
+		if (isEnabled) {
 			startUpdateAlarms();
 		}
 	}
 
-	private void registerReceivers() {
-		LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(context);
-		lbm.registerReceiver(scheduleRefreshedReceiver, new IntentFilter(DatabaseManager.ACTION_SCHEDULE_REFRESHED));
-		IntentFilter filter = new IntentFilter();
-		filter.addAction(DatabaseManager.ACTION_ADD_BOOKMARK);
-		filter.addAction(DatabaseManager.ACTION_REMOVE_BOOKMARKS);
-		lbm.registerReceiver(bookmarksReceiver, filter);
+	public void onBookmarkAdded(Event event) {
+		if (isEnabled) {
+			Intent serviceIntent = new Intent(AlarmIntentService.ACTION_ADD_BOOKMARK)
+					.putExtra(AlarmIntentService.EXTRA_EVENT_ID, event.getId());
+			final Date startTime = event.getStartTime();
+			if (startTime != null) {
+				serviceIntent.putExtra(AlarmIntentService.EXTRA_EVENT_START_TIME, startTime.getTime());
+			}
+			AlarmIntentService.enqueueWork(context, serviceIntent);
+		}
 	}
 
-	private void unregisterReceivers() {
-		LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(context);
-		lbm.unregisterReceiver(scheduleRefreshedReceiver);
-		lbm.unregisterReceiver(bookmarksReceiver);
+	public void onBookmarksRemoved(long[] eventIds) {
+		if (isEnabled) {
+			Intent serviceIntent = new Intent(AlarmIntentService.ACTION_REMOVE_BOOKMARKS)
+					.putExtra(AlarmIntentService.EXTRA_EVENT_IDS, eventIds);
+			AlarmIntentService.enqueueWork(context, serviceIntent);
+		}
 	}
 
-	void startUpdateAlarms() {
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+		if (SettingsFragment.KEY_PREF_NOTIFICATIONS_ENABLED.equals(key)) {
+			final boolean isEnabled = sharedPreferences.getBoolean(SettingsFragment.KEY_PREF_NOTIFICATIONS_ENABLED, false);
+			this.isEnabled = isEnabled;
+			if (isEnabled) {
+				startUpdateAlarms();
+			} else {
+				startDisableAlarms();
+			}
+		} else if (SettingsFragment.KEY_PREF_NOTIFICATIONS_DELAY.equals(key)) {
+			startUpdateAlarms();
+		}
+	}
+
+	private void startUpdateAlarms() {
 		Intent serviceIntent = new Intent(AlarmIntentService.ACTION_UPDATE_ALARMS);
 		AlarmIntentService.enqueueWork(context, serviceIntent);
 	}

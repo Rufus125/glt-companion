@@ -1,26 +1,27 @@
 package at.linuxtage.companion.fragments;
 
-import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.Loader;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.paging.PagedList;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import at.linuxtage.companion.adapters.EventsAdapter;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import at.linuxtage.companion.model.StatusEvent;
+import at.linuxtage.companion.viewmodels.LiveViewModel;
 
-
-public abstract class BaseLiveListFragment extends RecyclerViewFragment implements LoaderCallbacks<Cursor> {
-
-	private static final int EVENTS_LOADER_ID = 1;
+public abstract class BaseLiveListFragment extends RecyclerViewFragment implements Observer<PagedList<StatusEvent>> {
 
 	private EventsAdapter adapter;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		adapter = new EventsAdapter(getActivity(), this, false);
+		adapter = new EventsAdapter(getContext(), this, false);
 	}
 
 	@Override
@@ -32,32 +33,41 @@ public abstract class BaseLiveListFragment extends RecyclerViewFragment implemen
 
 		recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
 		recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL));
-		recyclerView.setAdapter(adapter);
 	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
+		setAdapter(adapter);
 		setEmptyText(getEmptyText());
 		setProgressBarVisible(true);
 
-		getLoaderManager().initLoader(EVENTS_LOADER_ID, null, this);
+		final LiveViewModel viewModel = ViewModelProviders.of(getParentFragment()).get(LiveViewModel.class);
+		getDataSource(viewModel).observe(getViewLifecycleOwner(), this);
+	}
+
+	private final Runnable preserveScrollPositionRunnable = new Runnable() {
+		@Override
+		public void run() {
+			// Ensure we stay at scroll position 0 so we can see the insertion animation
+			final RecyclerView recyclerView = getRecyclerView();
+			if (recyclerView != null) {
+				if (recyclerView.getScrollY() == 0) {
+					recyclerView.scrollToPosition(0);
+				}
+			}
+		}
+	};
+
+	@Override
+	public void onChanged(PagedList<StatusEvent> events) {
+		adapter.submitList(events, preserveScrollPositionRunnable);
+		setProgressBarVisible(false);
 	}
 
 	protected abstract String getEmptyText();
 
-	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-		if (data != null) {
-			adapter.swapCursor(data);
-		}
-
-		setProgressBarVisible(false);
-	}
-
-	@Override
-	public void onLoaderReset(Loader<Cursor> loader) {
-		adapter.swapCursor(null);
-	}
+	@NonNull
+	protected abstract LiveData<PagedList<StatusEvent>> getDataSource(@NonNull LiveViewModel viewModel);
 }

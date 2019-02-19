@@ -1,15 +1,15 @@
 package at.linuxtage.companion.utils;
 
 import android.content.res.Resources;
-import android.support.annotation.NonNull;
-import android.support.v4.util.CircularIntArray;
 import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.BulletSpan;
 import android.text.style.LeadingMarginSpan;
-
+import androidx.annotation.NonNull;
+import androidx.collection.CircularIntArray;
+import androidx.core.text.HtmlCompat;
 import org.xml.sax.XMLReader;
 
 import java.util.Iterator;
@@ -65,7 +65,7 @@ public class StringUtils {
 	}
 
 	/**
-	 * Replaces all groups of non-alphanumeric chars in source with a single replacement char.
+	 * Replaces all groups of removable chars in source with a single replacement char.
 	 */
 	private static String replaceNonAlphaGroups(String source, char replacement) {
 		final int length = source.length();
@@ -75,38 +75,38 @@ public class StringUtils {
 		int size = 0;
 		for (int i = 0; i < length; i++) {
 			c = source.charAt(i);
-			if (isLetterOrDigitOrUnderscore(c)) {
-				result[size++] = c;
-				replaced = false;
-			} else {
+			if (isRemovableChar(c)) {
 				// Skip quote
 				if ((c != '’') && !replaced) {
 					result[size++] = replacement;
 					replaced = true;
 				}
+			} else {
+				result[size++] = c;
+				replaced = false;
 			}
 		}
 		return new String(result, 0, size);
 	}
 
 	/**
-	 * Removes all non-alphanumeric chars at the beginning and end of source.
+	 * Removes all removable chars at the beginning and end of source.
 	 */
 	private static String trimNonAlpha(String source) {
 		int st = 0;
 		int len = source.length();
 
-		while ((st < len) && !isLetterOrDigitOrUnderscore(source.charAt(st))) {
+		while ((st < len) && isRemovableChar(source.charAt(st))) {
 			st++;
 		}
-		while ((st < len) && !isLetterOrDigitOrUnderscore(source.charAt(len - 1))) {
+		while ((st < len) && isRemovableChar(source.charAt(len - 1))) {
 			len--;
 		}
 		return ((st > 0) || (len < source.length())) ? source.substring(st, len) : source;
 	}
 
-	private static boolean isLetterOrDigitOrUnderscore(char c) {
-		return Character.isLetterOrDigit(c) || c == '_';
+	private static boolean isRemovableChar(char c) {
+		return !Character.isLetterOrDigit(c) && c != '_' && c != '@';
 	}
 
 	/**
@@ -122,14 +122,12 @@ public class StringUtils {
 		return source;
 	}
 
-	@SuppressWarnings("deprecation")
 	public static String stripHtml(@NonNull String html) {
-		return trimEnd(Html.fromHtml(html)).toString();
+		return trimEnd(HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_SEPARATOR_LINE_BREAK_LIST_ITEM)).toString();
 	}
 
-	@SuppressWarnings("deprecation")
 	public static CharSequence parseHtml(@NonNull String html, Resources res) {
-		return trimEnd(Html.fromHtml(html, null, new ListsTagHandler(res)));
+		return trimEnd(HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_SEPARATOR_LINE_BREAK_LIST_ITEM, null, new ListsTagHandler(res)));
 	}
 
 	public static CharSequence trimEnd(@NonNull CharSequence source) {

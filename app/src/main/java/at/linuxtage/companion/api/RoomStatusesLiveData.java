@@ -1,17 +1,17 @@
 package at.linuxtage.companion.api;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MediatorLiveData;
-import android.arch.lifecycle.Observer;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
 import android.text.format.DateUtils;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.Observer;
 import at.linuxtage.companion.model.Day;
 import at.linuxtage.companion.model.RoomStatus;
 

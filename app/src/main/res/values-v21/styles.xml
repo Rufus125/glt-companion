@@ -10,11 +10,6 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
 
-    <!-- Styles -->
-
-    <style name="FloatingActionButton" parent="FloatingActionButtonBase">
-        <item name="android:elevation">@dimen/fab_elevation</item>
-        <item name="android:stateListAnimator">@animator/fab_state_list</item>
-    </style>
+    <style name="Widget.MaterialHorizontalProgressBar" parent="Widget.AppCompat.ProgressBar.Horizontal"/>
 
 </resources>

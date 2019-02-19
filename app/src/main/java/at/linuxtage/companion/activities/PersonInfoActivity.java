@@ -1,17 +1,16 @@
 package at.linuxtage.companion.activities;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBar;
-import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
-import android.widget.TextView;
 
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.fragments.PersonInfoListFragment;
 import at.linuxtage.companion.model.Person;
 
-public class PersonInfoActivity extends BaseActivity {
+public class PersonInfoActivity extends AppCompatActivity {
 
 	public static final String EXTRA_PERSON = "person";
 
@@ -25,8 +24,6 @@ public class PersonInfoActivity extends BaseActivity {
 
 		ActionBar bar = getSupportActionBar();
 		bar.setDisplayHomeAsUpEnabled(true);
-		bar.setDisplayShowTitleEnabled(false);
-		((TextView) findViewById(R.id.title)).setText(person.getName());
 		setTitle(person.getName());
 
 		if (savedInstanceState == null) {
@@ -36,12 +33,8 @@ public class PersonInfoActivity extends BaseActivity {
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case android.R.id.home:
-				finish();
-				return true;
-		}
-		return false;
+	public boolean onSupportNavigateUp() {
+		finish();
+		return true;
 	}
 }
