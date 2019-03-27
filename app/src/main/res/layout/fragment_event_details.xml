@@ -118,7 +118,7 @@
             android:saveEnabled="false"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
             android:textIsSelectable="true"
-            tools:text="Welcome to GLT 2015!"/>
+            tools:text="Welcome to GLT!"/>
 
         <TextView
             android:id="@+id/links_header"

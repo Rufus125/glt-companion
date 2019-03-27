@@ -25,7 +25,7 @@ import at.linuxtage.companion.model.Person;
 import at.linuxtage.companion.model.Track;
 import at.linuxtage.companion.utils.DateUtils;
 
-@Database(entities = {EventEntity.class, EventTitles.class, Person.class, EventToPerson.class, Link.class, Track.class, Day.class, Bookmark.class}, version = 2, exportSchema = false)
+@Database(entities = {EventEntity.class, EventTitles.class, Person.class, EventToPerson.class, Link.class, Track.class, Day.class, Bookmark.class}, version = 3, exportSchema = false)
 @TypeConverters({GlobalTypeConverters.class})
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -39,7 +39,7 @@ public abstract class AppDatabase extends RoomDatabase {
 			// Events: make primary key and track_id not null
 			database.execSQL("CREATE TABLE tmp_"
 					+ EventEntity.TABLE_NAME
-					+ " (id INTEGER PRIMARY KEY NOT NULL, day_index INTEGER NOT NULL, start_time INTEGER, end_time INTEGER, room_name TEXT, slug TEXT, track_id INTEGER NOT NULL, abstract TEXT, description TEXT);");
+					+ " (id INTEGER PRIMARY KEY NOT NULL, day_index INTEGER NOT NULL, start_time INTEGER, end_time INTEGER, room_name TEXT, slug TEXT, url TEXT, track_id INTEGER NOT NULL, abstract TEXT, description TEXT);");
 			database.execSQL("INSERT INTO tmp_" + EventEntity.TABLE_NAME + " SELECT * FROM " + EventEntity.TABLE_NAME);
 			database.execSQL("DROP TABLE " + EventEntity.TABLE_NAME);
 			database.execSQL("ALTER TABLE tmp_" + EventEntity.TABLE_NAME + " RENAME TO " + EventEntity.TABLE_NAME);
@@ -76,6 +76,22 @@ public abstract class AppDatabase extends RoomDatabase {
 		}
 	};
 
+
+	static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+		@Override
+		public void migrate(SupportSQLiteDatabase database) {
+			// Events: add URL field
+			database.execSQL("DROP TABLE " + EventEntity.TABLE_NAME);
+			database.execSQL("CREATE TABLE "
+					+ EventEntity.TABLE_NAME
+					+ " (id INTEGER PRIMARY KEY NOT NULL, day_index INTEGER NOT NULL, start_time INTEGER, end_time INTEGER, room_name TEXT, slug TEXT, url TEXT, track_id INTEGER NOT NULL, abstract TEXT, description TEXT);");
+			database.execSQL("CREATE INDEX event_day_index_idx ON " + EventEntity.TABLE_NAME + " (day_index)");
+			database.execSQL("CREATE INDEX event_start_time_idx ON " + EventEntity.TABLE_NAME + " (start_time)");
+			database.execSQL("CREATE INDEX event_end_time_idx ON " + EventEntity.TABLE_NAME + " (end_time)");
+			database.execSQL("CREATE INDEX event_track_id_idx ON " + EventEntity.TABLE_NAME + " (track_id)");
+		}
+	};
+
 	private SharedPreferences sharedPreferences;
 
 	public SharedPreferences getSharedPreferences() {
@@ -88,8 +104,9 @@ public abstract class AppDatabase extends RoomDatabase {
 			synchronized (AppDatabase.class) {
 				res = INSTANCE;
 				if (res == null) {
-					res = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, "fosdem.sqlite")
+					res = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, "glt.sqlite")
 							.addMigrations(MIGRATION_1_2)
+							.addMigrations(MIGRATION_2_3)
 							.setJournalMode(JournalMode.TRUNCATE)
 							.build();
 					res.sharedPreferences = context.getApplicationContext().getSharedPreferences(DB_PREFS_FILE, Context.MODE_PRIVATE);

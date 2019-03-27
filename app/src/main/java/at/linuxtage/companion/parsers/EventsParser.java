@@ -114,6 +114,9 @@ public class EventsParser extends IterableAbstractPullParser<DetailedEvent> {
 									case "slug":
 										event.setSlug(parser.nextText());
 										break;
+										case "url":
+										event.setUrl(parser.nextText());
+										break;
 									case "title":
 										event.setTitle(parser.nextText());
 										break;
