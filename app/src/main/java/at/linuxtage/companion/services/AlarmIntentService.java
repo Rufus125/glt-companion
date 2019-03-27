@@ -1,44 +1,43 @@
 package at.linuxtage.companion.services;
 
-import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
+import android.app.*;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.AlarmManagerCompat;
-import android.support.v4.app.JobIntentService;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.content.ContextCompat;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.text.style.StyleSpan;
 
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.*;
+import androidx.core.app.TaskStackBuilder;
+import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
+import at.linuxtage.companion.BuildConfig;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.activities.EventDetailsActivity;
 import at.linuxtage.companion.activities.MainActivity;
 import at.linuxtage.companion.activities.RoomImageDialogActivity;
-import at.linuxtage.companion.db.DatabaseManager;
 import at.linuxtage.companion.model.Event;
 import at.linuxtage.companion.receivers.AlarmReceiver;
 import at.linuxtage.companion.utils.StringUtils;
 import at.linuxtage.companion.BuildConfig;
 import at.linuxtage.companion.activities.SettingsActivity;
+import at.linuxtage.companion.db.AppDatabase;
+import at.linuxtage.companion.fragments.SettingsFragment;
+import at.linuxtage.companion.model.AlarmInfo;
+import at.linuxtage.companion.receivers.AlarmReceiver;
+import at.linuxtage.companion.utils.StringUtils;
 
 /**
  * A service to schedule or unschedule alarms in the background, keeping the app responsive.
@@ -55,6 +54,12 @@ public class AlarmIntentService extends JobIntentService {
 
 	public static final String ACTION_UPDATE_ALARMS = BuildConfig.APPLICATION_ID + ".action.UPDATE_ALARMS";
 	public static final String ACTION_DISABLE_ALARMS = BuildConfig.APPLICATION_ID + ".action.DISABLE_ALARMS";
+	public static final String ACTION_ADD_BOOKMARK = BuildConfig.APPLICATION_ID + ".action.ADD_BOOKMARK";
+	public static final String EXTRA_EVENT_ID = "event_id";
+	public static final String EXTRA_EVENT_START_TIME = "event_start";
+	public static final String ACTION_REMOVE_BOOKMARKS = BuildConfig.APPLICATION_ID + ".action.REMOVE_BOOKMARKS";
+	public static final String EXTRA_EVENT_IDS = "event_ids";
+
 
 	private AlarmManager alarmManager;
 
@@ -79,7 +84,7 @@ public class AlarmIntentService extends JobIntentService {
 	}
 
 	@Override
-	protected void onHandleWork(Intent intent) {
+	protected void onHandleWork(@NonNull Intent intent) {
 		switch (intent.getAction()) {
 
 			case ACTION_UPDATE_ALARMS: {
@@ -88,23 +93,16 @@ public class AlarmIntentService extends JobIntentService {
 				final long delay = getDelay();
 				final long now = System.currentTimeMillis();
 				boolean hasAlarms = false;
-				Cursor cursor = DatabaseManager.getInstance().getBookmarks(0L);
-				try {
-					while (cursor.moveToNext()) {
-						long eventId = DatabaseManager.toEventId(cursor);
-						long notificationTime = DatabaseManager.toEventStartTimeMillis(cursor) - delay;
-						PendingIntent pi = getAlarmPendingIntent(eventId);
-						if (notificationTime < now) {
-							// Cancel pending alarms that are now scheduled in the past, if any
-							alarmManager.cancel(pi);
-						} else {
-							AlarmManagerCompat.setExact(alarmManager, AlarmManager.RTC_WAKEUP, notificationTime, pi);
-							hasAlarms = true;
-						}
+				for (AlarmInfo info : AppDatabase.getInstance(this).getBookmarksDao().getBookmarksAlarmInfo(0L)) {
+					final long notificationTime = info.getStartTime() == null ? -1L : info.getStartTime().getTime() - delay;
+					PendingIntent pi = getAlarmPendingIntent(info.getEventId());
+					if (notificationTime < now) {
+						// Cancel pending alarms that are now scheduled in the past, if any
+						alarmManager.cancel(pi);
+					} else {
+						AlarmManagerCompat.setExact(alarmManager, AlarmManager.RTC_WAKEUP, notificationTime, pi);
+						hasAlarms = true;
 					}
-
-				} finally {
-					cursor.close();
 				}
 				setAlarmReceiverEnabled(hasAlarms);
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && hasAlarms) {
@@ -116,24 +114,18 @@ public class AlarmIntentService extends JobIntentService {
 			case ACTION_DISABLE_ALARMS: {
 
 				// Cancel alarms of every bookmark in the future
-				Cursor cursor = DatabaseManager.getInstance().getBookmarks(System.currentTimeMillis());
-				try {
-					while (cursor.moveToNext()) {
-						long eventId = DatabaseManager.toEventId(cursor);
-						alarmManager.cancel(getAlarmPendingIntent(eventId));
-					}
-				} finally {
-					cursor.close();
+				for (AlarmInfo info : AppDatabase.getInstance(this).getBookmarksDao().getBookmarksAlarmInfo(System.currentTimeMillis())) {
+					alarmManager.cancel(getAlarmPendingIntent(info.getEventId()));
 				}
 				setAlarmReceiverEnabled(false);
 
 				break;
 			}
-			case DatabaseManager.ACTION_ADD_BOOKMARK: {
+			case ACTION_ADD_BOOKMARK: {
 
 				long delay = getDelay();
-				long eventId = intent.getLongExtra(DatabaseManager.EXTRA_EVENT_ID, -1L);
-				long startTime = intent.getLongExtra(DatabaseManager.EXTRA_EVENT_START_TIME, -1L);
+				long eventId = intent.getLongExtra(EXTRA_EVENT_ID, -1L);
+				long startTime = intent.getLongExtra(EXTRA_EVENT_START_TIME, -1L);
 				// Only schedule future events. If they start before the delay, the alarm will go off immediately
 				if ((startTime == -1L) || (startTime < System.currentTimeMillis())) {
 					break;
@@ -146,10 +138,10 @@ public class AlarmIntentService extends JobIntentService {
 
 				break;
 			}
-			case DatabaseManager.ACTION_REMOVE_BOOKMARKS: {
+			case ACTION_REMOVE_BOOKMARKS: {
 
 				// Cancel matching alarms, might they exist or not
-				long[] eventIds = intent.getLongArrayExtra(DatabaseManager.EXTRA_EVENT_IDS);
+				long[] eventIds = intent.getLongArrayExtra(EXTRA_EVENT_IDS);
 				for (long eventId : eventIds) {
 					alarmManager.cancel(getAlarmPendingIntent(eventId));
 				}
@@ -159,7 +151,7 @@ public class AlarmIntentService extends JobIntentService {
 			case AlarmReceiver.ACTION_NOTIFY_EVENT: {
 
 				long eventId = Long.parseLong(intent.getDataString());
-				Event event = DatabaseManager.getInstance().getEvent(eventId);
+				Event event = AppDatabase.getInstance(this).getScheduleDao().getEvent(eventId);
 				if (event != null) {
 					NotificationManagerCompat.from(this).notify((int) eventId, buildNotification(event));
 				}
@@ -171,7 +163,7 @@ public class AlarmIntentService extends JobIntentService {
 
 	private long getDelay() {
 		String delayString = PreferenceManager.getDefaultSharedPreferences(this).getString(
-				SettingsActivity.KEY_PREF_NOTIFICATIONS_DELAY, "0");
+				SettingsFragment.KEY_PREF_NOTIFICATIONS_DELAY, "0");
 		// Convert from minutes to milliseconds
 		return Long.parseLong(delayString) * DateUtils.MINUTE_IN_MILLIS;
 	}
@@ -220,7 +212,7 @@ public class AlarmIntentService extends JobIntentService {
 
 		int defaultFlags = Notification.DEFAULT_SOUND;
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-		if (sharedPreferences.getBoolean(SettingsActivity.KEY_PREF_NOTIFICATIONS_VIBRATE, false)) {
+		if (sharedPreferences.getBoolean(SettingsFragment.KEY_PREF_NOTIFICATIONS_VIBRATE, false)) {
 			defaultFlags |= Notification.DEFAULT_VIBRATE;
 		}
 
@@ -265,7 +257,7 @@ public class AlarmIntentService extends JobIntentService {
 				.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
 
 		// Blink the LED with FOSDEM color if enabled in the options
-		if (sharedPreferences.getBoolean(SettingsActivity.KEY_PREF_NOTIFICATIONS_LED, false)) {
+		if (sharedPreferences.getBoolean(SettingsFragment.KEY_PREF_NOTIFICATIONS_LED, false)) {
 			notificationBuilder.setLights(notificationColor, 1000, 5000);
 		}
 

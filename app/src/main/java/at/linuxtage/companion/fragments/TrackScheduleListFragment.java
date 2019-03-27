@@ -1,36 +1,29 @@
 package at.linuxtage.companion.fragments;
 
 import android.content.Context;
-import android.content.res.TypedArray;
-import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.Loader;
-import android.support.v4.widget.CursorAdapter;
-import android.support.v4.widget.TextViewCompat;
-import android.support.v7.content.res.AppCompatResources;
-import android.text.TextUtils;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ListView;
-import android.widget.TextView;
+import android.text.format.DateUtils;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import at.linuxtage.companion.R;
-import at.linuxtage.companion.db.DatabaseManager;
-import at.linuxtage.companion.loaders.TrackScheduleLoader;
+import at.linuxtage.companion.adapters.TrackScheduleAdapter;
 import at.linuxtage.companion.model.Day;
 import at.linuxtage.companion.model.Event;
+import at.linuxtage.companion.model.StatusEvent;
 import at.linuxtage.companion.model.Track;
-import at.linuxtage.companion.utils.DateUtils;
+import at.linuxtage.companion.viewmodels.TrackScheduleViewModel;
 
-import java.text.DateFormat;
+import java.util.List;
 
-public class TrackScheduleListFragment extends SmoothListFragment implements Handler.Callback, LoaderCallbacks<Cursor> {
+public class TrackScheduleListFragment extends RecyclerViewFragment
+		implements TrackScheduleAdapter.EventClickListener, Handler.Callback, Observer<List<StatusEvent>> {
 
 	/**
 	 * Interface implemented by container activities
@@ -39,19 +32,22 @@ public class TrackScheduleListFragment extends SmoothListFragment implements Han
 		void onEventSelected(int position, Event event);
 	}
 
-	private static final int EVENTS_LOADER_ID = 1;
 	private static final int REFRESH_TIME_WHAT = 1;
-	private static final long REFRESH_TIME_INTERVAL = 60 * 1000L; // 1min
+	private static final long REFRESH_TIME_INTERVAL = DateUtils.MINUTE_IN_MILLIS;
 
 	private static final String ARG_DAY = "day";
 	private static final String ARG_TRACK = "track";
 	private static final String ARG_FROM_EVENT_ID = "from_event_id";
+
+	private static final String STATE_IS_LIST_ALREADY_SHOWN = "isListAlreadyShown";
+	private static final String STATE_SELECTED_ID = "selectedId";
 
 	private Day day;
 	private Handler handler;
 	private TrackScheduleAdapter adapter;
 	private Callbacks listener;
 	private boolean selectionEnabled = false;
+	private long selectedId = -1L;
 	private boolean isListAlreadyShown = false;
 
 	public static TrackScheduleListFragment newInstance(Day day, Track track) {
@@ -76,21 +72,34 @@ public class TrackScheduleListFragment extends SmoothListFragment implements Han
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		selectionEnabled = getResources().getBoolean(R.bool.tablet_landscape);
 
 		day = getArguments().getParcelable(ARG_DAY);
 		handler = new Handler(this);
-		adapter = new TrackScheduleAdapter(getActivity());
-		setListAdapter(adapter);
+		adapter = new TrackScheduleAdapter(getActivity(), this);
 
 		if (savedInstanceState != null) {
-			isListAlreadyShown = savedInstanceState.getBoolean("isListAlreadyShown");
+			isListAlreadyShown = savedInstanceState.getBoolean(STATE_IS_LIST_ALREADY_SHOWN);
+		}
+		if (savedInstanceState == null) {
+			setSelectedId(getArguments().getLong(ARG_FROM_EVENT_ID, -1L));
+		} else {
+			setSelectedId(savedInstanceState.getLong(STATE_SELECTED_ID));
+		}
+	}
+
+	private void setSelectedId(long id) {
+		selectedId = id;
+		if (selectionEnabled) {
+			adapter.setSelectedId(id);
 		}
 	}
 
 	@Override
 	public void onSaveInstanceState(@NonNull Bundle outState) {
 		super.onSaveInstanceState(outState);
-		outState.putBoolean("isListAlreadyShown", isListAlreadyShown);
+		outState.putBoolean(STATE_IS_LIST_ALREADY_SHOWN, isListAlreadyShown);
+		outState.putLong(STATE_SELECTED_ID, selectedId);
 	}
 
 	@Override
@@ -107,25 +116,30 @@ public class TrackScheduleListFragment extends SmoothListFragment implements Han
 		listener = null;
 	}
 
-	private void notifyEventSelected(int position) {
+	private void notifyEventSelected(int position, Event event) {
 		if (listener != null) {
-			listener.onEventSelected(position, (position == ListView.INVALID_POSITION) ? null : adapter.getItem(position));
+			listener.onEventSelected(position, event);
 		}
 	}
 
-	public void setSelectionEnabled(boolean selectionEnabled) {
-		this.selectionEnabled = selectionEnabled;
+	@Override
+	protected void onRecyclerViewCreated(RecyclerView recyclerView, @Nullable Bundle savedInstanceState) {
+		recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
+		recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL));
 	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
-		getListView().setChoiceMode(selectionEnabled ? ListView.CHOICE_MODE_SINGLE : ListView.CHOICE_MODE_NONE);
+		setAdapter(adapter);
 		setEmptyText(getString(R.string.no_data));
-		setListShown(false);
+		setProgressBarVisible(true);
 
-		getLoaderManager().initLoader(EVENTS_LOADER_ID, null, this);
+		Track track = getArguments().getParcelable(ARG_TRACK);
+		final TrackScheduleViewModel viewModel = ViewModelProviders.of(this).get(TrackScheduleViewModel.class);
+		viewModel.setTrack(day, track);
+		viewModel.getSchedule().observe(getViewLifecycleOwner(), this);
 	}
 
 	@Override
@@ -156,6 +170,12 @@ public class TrackScheduleListFragment extends SmoothListFragment implements Han
 	}
 
 	@Override
+	public void onEventClick(int position, Event event) {
+		setSelectedId(event.getId());
+		notifyEventSelected(position, event);
+	}
+
+	@Override
 	public boolean handleMessage(Message msg) {
 		switch (msg.what) {
 			case REFRESH_TIME_WHAT:
@@ -167,169 +187,32 @@ public class TrackScheduleListFragment extends SmoothListFragment implements Han
 	}
 
 	@Override
-	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		Track track = getArguments().getParcelable(ARG_TRACK);
-		return new TrackScheduleLoader(getActivity(), day, track);
-	}
+	public void onChanged(List<StatusEvent> schedule) {
+		adapter.submitList(schedule);
 
-	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-		if (data != null) {
-			adapter.swapCursor(data);
-
-			if (selectionEnabled) {
-				final int count = adapter.getCount();
-				int checkedPosition = getListView().getCheckedItemPosition();
-				if ((checkedPosition == ListView.INVALID_POSITION) || (checkedPosition >= count)) {
-					// There is no current valid selection, use the default one
-					checkedPosition = getDefaultPosition();
-					if (checkedPosition != ListView.INVALID_POSITION) {
-						getListView().setItemChecked(checkedPosition, true);
-					}
-				}
-
-				// Ensure the current selection is visible
-				if (checkedPosition != ListView.INVALID_POSITION) {
-					getListView().setSelection(checkedPosition);
-				}
-				// Notify the parent of the current selection to synchronize its state
-				notifyEventSelected(checkedPosition);
-
-			} else if (!isListAlreadyShown) {
-				int position = getDefaultPosition();
-				if (position != ListView.INVALID_POSITION) {
-					getListView().setSelection(position);
-				}
-			}
-			isListAlreadyShown = true;
-		}
-
-		setListShown(true);
-	}
-
-	/**
-	 * @return The default position in the list, or -1 if the list is empty
-	 */
-	private int getDefaultPosition() {
-		final int count = adapter.getCount();
-		if (count == 0) {
-			return ListView.INVALID_POSITION;
-		}
-		long fromEventId = getArguments().getLong(ARG_FROM_EVENT_ID, -1L);
-		if (fromEventId != -1L) {
-			// Look for the source event in the list and return its position
-			for (int i = 0; i < count; ++i) {
-				if (adapter.getItemId(i) == fromEventId) {
-					return i;
-				}
-			}
-		}
-		return 0;
-	}
-
-	@Override
-	public void onLoaderReset(Loader<Cursor> loader) {
-		adapter.swapCursor(null);
-	}
-
-	@Override
-	public void onListItemClick(ListView l, View v, int position, long id) {
-		notifyEventSelected(position);
-	}
-
-	private static class TrackScheduleAdapter extends CursorAdapter {
-
-		private final LayoutInflater inflater;
-		private final DateFormat timeDateFormat;
-		private final int timeBackgroundColor;
-		private final int timeForegroundColor;
-		private final int timeRunningBackgroundColor;
-		private final int timeRunningForegroundColor;
-		private long currentTime = -1L;
-
-		public TrackScheduleAdapter(Context context) {
-			super(context, null, 0);
-			inflater = LayoutInflater.from(context);
-			timeDateFormat = DateUtils.getTimeDateFormat(context);
-			timeBackgroundColor = ContextCompat.getColor(context, R.color.schedule_time_background);
-			timeRunningBackgroundColor = ContextCompat.getColor(context, R.color.schedule_time_running_background);
-
-			TypedArray a = context.getTheme().obtainStyledAttributes(R.styleable.PrimaryTextColors);
-			timeForegroundColor = a.getColor(R.styleable.PrimaryTextColors_android_textColorPrimary, 0);
-			timeRunningForegroundColor = a.getColor(R.styleable.PrimaryTextColors_android_textColorPrimaryInverse, 0);
-			a.recycle();
-		}
-
-		public void setCurrentTime(long time) {
-			if (currentTime != time) {
-				currentTime = time;
-				notifyDataSetChanged();
-			}
-		}
-
-		@Override
-		public Event getItem(int position) {
-			return DatabaseManager.toEvent((Cursor) super.getItem(position));
-		}
-
-		@Override
-		public View newView(Context context, Cursor cursor, ViewGroup parent) {
-			View view = inflater.inflate(R.layout.item_schedule_event, parent, false);
-
-			ViewHolder holder = new ViewHolder();
-			holder.time = view.findViewById(R.id.time);
-			holder.title = view.findViewById(R.id.title);
-			holder.persons = view.findViewById(R.id.persons);
-			holder.room = view.findViewById(R.id.room);
-			view.setTag(holder);
-
-			return view;
-		}
-
-		@Override
-		public void bindView(View view, Context context, Cursor cursor) {
-			ViewHolder holder = (ViewHolder) view.getTag();
-			Event event = DatabaseManager.toEvent(cursor, holder.event);
-			holder.event = event;
-
-			String formattedTime = timeDateFormat.format(event.getStartTime());
-			holder.time.setText(formattedTime);
-			if ((currentTime != -1L) && event.isRunningAtTime(currentTime)) {
-				// Contrast colors for running event
-				holder.time.setBackgroundColor(timeRunningBackgroundColor);
-				holder.time.setTextColor(timeRunningForegroundColor);
-				holder.time.setContentDescription(context.getString(R.string.in_progress_content_description, formattedTime));
-			} else {
-				// Normal colors
-				holder.time.setBackgroundColor(timeBackgroundColor);
-				holder.time.setTextColor(timeForegroundColor);
-				// Use text as content description
-				holder.time.setContentDescription(null);
+		if (selectionEnabled) {
+			int selectedPosition = adapter.getPositionForId(selectedId);
+			if (selectedPosition == RecyclerView.NO_POSITION && adapter.getItemCount() > 0) {
+				// There is no current valid selection, reset to use the first item
+				setSelectedId(adapter.getItemId(0));
+				selectedPosition = 0;
 			}
 
-			holder.title.setText(event.getTitle());
-			boolean isBookmarked = DatabaseManager.toBookmarkStatus(cursor);
-			Drawable bookmarkDrawable = isBookmarked
-					? AppCompatResources.getDrawable(context, R.drawable.ic_bookmark_grey600_24dp)
-					: null;
-			TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(holder.title, null, null, bookmarkDrawable, null);
-			holder.title.setContentDescription(isBookmarked
-					? context.getString(R.string.in_bookmarks_content_description, event.getTitle())
-					: null
-			);
-			String personsSummary = event.getPersonsSummary();
-			holder.persons.setText(personsSummary);
-			holder.persons.setVisibility(TextUtils.isEmpty(personsSummary) ? View.GONE : View.VISIBLE);
-			holder.room.setText(event.getRoomName());
-			holder.room.setContentDescription(context.getString(R.string.room_content_description, event.getRoomName()));
-		}
+			// Ensure the current selection is visible
+			if (selectedPosition != RecyclerView.NO_POSITION) {
+				getRecyclerView().scrollToPosition(selectedPosition);
+			}
+			// Notify the parent of the current selection to synchronize its state
+			notifyEventSelected(selectedPosition, (selectedPosition == RecyclerView.NO_POSITION) ? null : schedule.get(selectedPosition).getEvent());
 
-		static class ViewHolder {
-			TextView time;
-			TextView title;
-			TextView persons;
-			TextView room;
-			Event event;
+		} else if (!isListAlreadyShown) {
+			final int position = adapter.getPositionForId(selectedId);
+			if (position != RecyclerView.NO_POSITION) {
+				getRecyclerView().scrollToPosition(position);
+			}
 		}
+		isListAlreadyShown = true;
+
+		setProgressBarVisible(false);
 	}
 }

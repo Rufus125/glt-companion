@@ -1,26 +1,27 @@
 package at.linuxtage.companion.utils;
 
+import android.app.Activity;
 import android.app.ActivityManager;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import at.linuxtage.companion.model.Track;
 
 public class ThemeUtils {
 
-	public static void setActionBarTrackColor(@NonNull AppCompatActivity activity, @NonNull Track.Type trackType) {
-		ActionBar actionBar = activity.getSupportActionBar();
-		final int color = ContextCompat.getColor(activity, trackType.getColorResId());
-		actionBar.setBackgroundDrawable(new ColorDrawable(color));
-
+	@SuppressWarnings("deprecation")
+	public static void setStatusBarTrackColor(@NonNull Activity activity, @NonNull Track.Type trackType) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			final int color = ContextCompat.getColor(activity, trackType.getColorResId());
 			final int darkColor = ContextCompat.getColor(activity, trackType.getDarkColorResId());
 			activity.getWindow().setStatusBarColor(darkColor);
-			activity.setTaskDescription(new ActivityManager.TaskDescription(null, null, color | 0xFF000000));
+			final ActivityManager.TaskDescription taskDescription;
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+				taskDescription = new ActivityManager.TaskDescription(null, 0, color | 0xFF000000);
+			} else {
+				taskDescription = new ActivityManager.TaskDescription(null, null, color | 0xFF000000);
+			}
+			activity.setTaskDescription(taskDescription);
 		}
 	}
 }

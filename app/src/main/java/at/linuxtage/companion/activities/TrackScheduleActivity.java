@@ -1,16 +1,18 @@
 package at.linuxtage.companion.activities;
 
 import android.content.Intent;
+import android.nfc.NdefRecord;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.NavUtils;
-import android.support.v7.app.ActionBar;
-import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
-import android.widget.ImageView;
-
+import android.widget.ImageButton;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProviders;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.fragments.EventDetailsFragment;
 import at.linuxtage.companion.fragments.RoomImageDialogFragment;
@@ -21,16 +23,16 @@ import at.linuxtage.companion.model.Track;
 import at.linuxtage.companion.utils.NfcUtils;
 import at.linuxtage.companion.utils.NfcUtils.CreateNfcAppDataCallback;
 import at.linuxtage.companion.utils.ThemeUtils;
+import at.linuxtage.companion.viewmodels.BookmarkStatusViewModel;
+import at.linuxtage.companion.widgets.BookmarkStatusAdapter;
 
 /**
  * Track Schedule container, works in both single pane and dual pane modes.
  *
  * @author Christophe Beyls
  */
-public class TrackScheduleActivity extends BaseActivity
-		implements TrackScheduleListFragment.Callbacks,
-		EventDetailsFragment.FloatingActionButtonProvider,
-		CreateNfcAppDataCallback {
+public class TrackScheduleActivity extends AppCompatActivity
+		implements TrackScheduleListFragment.Callbacks, CreateNfcAppDataCallback {
 
 	public static final String EXTRA_DAY = "day";
 	public static final String EXTRA_TRACK = "track";
@@ -42,15 +44,14 @@ public class TrackScheduleActivity extends BaseActivity
 	private boolean isTabletLandscape;
 	private Event lastSelectedEvent;
 
-	private ImageView floatingActionButton;
+	private BookmarkStatusViewModel bookmarkStatusViewModel = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.track_schedule);
-		setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-
-		floatingActionButton = findViewById(R.id.fab);
+		Toolbar toolbar = findViewById(R.id.toolbar);
+		setSupportActionBar(toolbar);
 
 		Bundle extras = getIntent().getExtras();
 		day = extras.getParcelable(EXTRA_DAY);
@@ -61,14 +62,16 @@ public class TrackScheduleActivity extends BaseActivity
 		bar.setTitle(track.toString());
 		bar.setSubtitle(day.toString());
 		setTitle(String.format("%1$s, %2$s", track.toString(), day.toString()));
-		ThemeUtils.setActionBarTrackColor(this, track.getType());
+		ThemeUtils.setStatusBarTrackColor(this, track.getType());
+		final int trackColor = ContextCompat.getColor(this, track.getType().getColorResId());
+		toolbar.setBackgroundColor(trackColor);
 
 		isTabletLandscape = getResources().getBoolean(R.bool.tablet_landscape);
 
-		TrackScheduleListFragment trackScheduleListFragment;
 		FragmentManager fm = getSupportFragmentManager();
 		if (savedInstanceState == null) {
 			long fromEventId = extras.getLong(EXTRA_FROM_EVENT_ID, -1L);
+			final TrackScheduleListFragment trackScheduleListFragment;
 			if (fromEventId != -1L) {
 				trackScheduleListFragment = TrackScheduleListFragment.newInstance(day, track, fromEventId);
 			} else {
@@ -76,8 +79,6 @@ public class TrackScheduleActivity extends BaseActivity
 			}
 			fm.beginTransaction().add(R.id.schedule, trackScheduleListFragment).commit();
 		} else {
-			trackScheduleListFragment = (TrackScheduleListFragment) fm.findFragmentById(R.id.schedule);
-
 			// Cleanup after switching from dual pane to single pane mode
 			if (!isTabletLandscape) {
 				FragmentTransaction ft = null;
@@ -101,22 +102,26 @@ public class TrackScheduleActivity extends BaseActivity
 				}
 			}
 		}
-		trackScheduleListFragment.setSelectionEnabled(isTabletLandscape);
 
 		if (isTabletLandscape) {
+			ImageButton floatingActionButton = findViewById(R.id.fab);
+			if (floatingActionButton != null) {
+				bookmarkStatusViewModel = ViewModelProviders.of(this).get(BookmarkStatusViewModel.class);
+				BookmarkStatusAdapter.setupWithImageButton(bookmarkStatusViewModel, this, floatingActionButton);
+			}
+
 			// Enable Android Beam
 			NfcUtils.setAppDataPushMessageCallbackIfAvailable(this, this);
 		}
 	}
 
+	@Nullable
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case android.R.id.home:
-				NavUtils.navigateUpFromSameTask(this);
-				return true;
-		}
-		return false;
+	public Intent getSupportParentActivityIntent() {
+		final Intent intent = super.getSupportParentActivityIntent();
+		// Add FLAG_ACTIVITY_SINGLE_TOP to ensure the Main activity in the back stack is not re-created
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		return intent;
 	}
 
 	// TrackScheduleListFragment.Callbacks
@@ -142,6 +147,10 @@ public class TrackScheduleActivity extends BaseActivity
 					fm.beginTransaction().remove(currentFragment).commitAllowingStateLoss();
 				}
 			}
+
+			if (bookmarkStatusViewModel != null) {
+				bookmarkStatusViewModel.setEvent(event);
+			}
 		} else {
 			// Classic mode: Show event details in a new activity
 			Intent intent = new Intent(this, TrackScheduleEventActivity.class);
@@ -152,20 +161,13 @@ public class TrackScheduleActivity extends BaseActivity
 		}
 	}
 
-	// EventDetailsFragment.FloatingActionButtonProvider
-
-	@Override
-	public ImageView getActionButton() {
-		return floatingActionButton;
-	}
-
 	// CreateNfcAppDataCallback
 
 	@Override
-	public byte[] createNfcAppData() {
+	public NdefRecord createNfcAppData() {
 		if (lastSelectedEvent == null) {
 			return null;
 		}
-		return String.valueOf(lastSelectedEvent.getId()).getBytes();
+		return NfcUtils.createEventAppData(this, lastSelectedEvent);
 	}
 }

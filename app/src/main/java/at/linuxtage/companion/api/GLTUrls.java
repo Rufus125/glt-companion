@@ -10,9 +10,9 @@ import java.util.Locale;
  */
 public class GLTUrls {
     // https://fosdem.org/schedule/xml
-    //private static final String SCHEDULE_URL = "http://flo.cx/tmp/fosdem_d1.xml";
+    private static final String SCHEDULE_URL = "http://flo.cx/tmp/fosdem_d1.xml";
 
-    private static final String SCHEDULE_URL = "https://glt%1$d-programm.linuxtage.at/schedule.xml";
+    //private static final String SCHEDULE_URL = "https://glt%1$d-programm.linuxtage.at/schedule.xml";
 	//private static final String SCHEDULE_URL = "https://fosdem.org/schedule/xml";
 	private static final String ROOMS_URL = "https://api.fosdem.org/roomstatus/v1/listrooms";
 	//private static final String ROOMS_URL = "https://api.fosdem.org/roomstatus/v1/listrooms";
@@ -24,7 +24,7 @@ public class GLTUrls {
 
 	private static final String LOCAL_NAVIGATION_URL = "https://nav.fosdem.org/";
 	private static final String LOCAL_NAVIGATION_TO_ROOM_URL_FORMAT = "https://nav.fosdem.org/d/%1$s/";
-	private static final String VOLUNTEER_URL = "https://linuxtage.at/helfer/";
+	private static final String VOLUNTEER_URL = "https://www.linuxtage.at/participate/";
 	//private static final String VOLUNTEER_URL = "https://fosdem.org/volunteer/";
 
 

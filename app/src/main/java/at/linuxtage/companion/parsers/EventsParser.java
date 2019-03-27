@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Locale;
 
 import at.linuxtage.companion.model.Day;
-import at.linuxtage.companion.model.Event;
+import at.linuxtage.companion.model.DetailedEvent;
 import at.linuxtage.companion.model.Link;
 import at.linuxtage.companion.model.Person;
 import at.linuxtage.companion.model.Track;
@@ -23,9 +23,9 @@ import at.linuxtage.companion.utils.DateUtils;
  *
  * @author Christophe Beyls
  */
-public class EventsParser extends IterableAbstractPullParser<Event> {
+public class EventsParser extends IterableAbstractPullParser<DetailedEvent> {
 
-	private final DateFormat DATE_FORMAT = DateUtils.withAustriaTimeZone(new SimpleDateFormat("yyyy-MM-dd", Locale.US));
+	private final DateFormat DATE_FORMAT = DateUtils.withAustrianTimeZone(new SimpleDateFormat("yyyy-MM-dd", Locale.US));
 
 	// Calendar used to compute the events time, according to Belgium timezone
 	private final Calendar calendar = Calendar.getInstance(DateUtils.getAustriaTimeZone(), Locale.US);
@@ -67,7 +67,7 @@ public class EventsParser extends IterableAbstractPullParser<Event> {
 	}
 
 	@Override
-	protected Event parseNext(XmlPullParser parser) throws Exception {
+	protected DetailedEvent parseNext(XmlPullParser parser) throws Exception {
 		while (!isNextEndTag("schedule")) {
 			if (isStartTag()) {
 
@@ -81,7 +81,7 @@ public class EventsParser extends IterableAbstractPullParser<Event> {
 						currentRoom = parser.getAttributeValue(null, "name");
 						break;
 					case "event":
-						Event event = new Event();
+						DetailedEvent event = new DetailedEvent();
 						event.setId(Long.parseLong(parser.getAttributeValue(null, "id")));
 						event.setDay(currentDay);
 						event.setRoomName(currentRoom);
@@ -151,6 +151,7 @@ public class EventsParser extends IterableAbstractPullParser<Event> {
 										while (!isNextEndTag("links")) {
 											if (isStartTag("link")) {
 												Link link = new Link();
+												link.setEventId(event.getId());
 												link.setUrl(parser.getAttributeValue(null, "href"));
 												link.setDescription(parser.nextText());
 

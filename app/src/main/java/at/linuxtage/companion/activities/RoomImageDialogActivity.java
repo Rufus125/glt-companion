@@ -1,15 +1,10 @@
 package at.linuxtage.companion.activities;
 
-import android.arch.lifecycle.LifecycleOwner;
-import android.arch.lifecycle.Observer;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.customtabs.CustomTabsIntent;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.Toolbar;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -19,6 +14,12 @@ import android.widget.ImageView;
 
 import java.util.Map;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Observer;
 import at.linuxtage.companion.R;
 import at.linuxtage.companion.api.GLTApi;
 import at.linuxtage.companion.api.GLTUrls;
@@ -31,7 +32,7 @@ import at.linuxtage.companion.utils.StringUtils;
  *
  * @author Christophe Beyls
  */
-public class RoomImageDialogActivity extends BaseActivity {
+public class RoomImageDialogActivity extends AppCompatActivity {
 
 	public static final String EXTRA_ROOM_NAME = "roomName";
 	public static final String EXTRA_ROOM_IMAGE_RESOURCE_ID = "imageResId";
@@ -59,6 +60,7 @@ public class RoomImageDialogActivity extends BaseActivity {
 				@Override
 				public boolean onMenuItemClick(MenuItem item) {
 					switch (item.getItemId()) {
+					    //TODO this was commented out
 						/*case R.id.navigation:
 							String localNavigationUrl = GLTUrls.getLocalNavigationToLocation(StringUtils.toSlug(roomName));
 							try {
@@ -70,13 +72,14 @@ public class RoomImageDialogActivity extends BaseActivity {
 							} catch (ActivityNotFoundException ignore) {
 							}
 							break;*/
+							//until here
 					}
 					return false;
 				}
 			});
 
 			// Display the room status as subtitle
-			GLTApi.getRoomStatuses().observe(owner, new Observer<Map<String, RoomStatus>>() {
+			GLTApi.getRoomStatuses(toolbar.getContext()).observe(owner, new Observer<Map<String, RoomStatus>>() {
 				@Override
 				public void onChanged(Map<String, RoomStatus> roomStatuses) {
 					RoomStatus roomStatus = roomStatuses.get(roomName);

@@ -5,23 +5,27 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.widget.SearchView;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.view.Menu;
 import android.view.MenuItem;
-
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProviders;
 import at.linuxtage.companion.R;
-import at.linuxtage.companion.fragments.MessageDialogFragment;
 import at.linuxtage.companion.fragments.SearchResultListFragment;
+import at.linuxtage.companion.viewmodels.SearchViewModel;
+import com.google.android.material.snackbar.Snackbar;
 
-public class SearchResultActivity extends BaseActivity {
-
-	public static final int MIN_SEARCH_LENGTH = 3;
+public class SearchResultActivity extends AppCompatActivity {
 
 	private static final String STATE_CURRENT_QUERY = "current_query";
 	// Search Intent sent by Google Now
 	private static final String GMS_ACTION_SEARCH = "com.google.android.gms.actions.SEARCH_ACTION";
 
-	private String currentQuery;
+	private SearchViewModel viewModel;
 	private SearchView searchView;
 
 	@Override
@@ -31,17 +35,22 @@ public class SearchResultActivity extends BaseActivity {
 
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+		viewModel = ViewModelProviders.of(this).get(SearchViewModel.class);
+
 		if (savedInstanceState == null) {
+			SearchResultListFragment f = SearchResultListFragment.newInstance();
+			getSupportFragmentManager().beginTransaction().replace(R.id.content, f).commit();
+
 			handleIntent(getIntent(), false);
 		} else {
-			currentQuery = savedInstanceState.getString(STATE_CURRENT_QUERY);
+			viewModel.setQuery(savedInstanceState.getString(STATE_CURRENT_QUERY, ""));
 		}
 	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		outState.putString(STATE_CURRENT_QUERY, currentQuery);
+		outState.putString(STATE_CURRENT_QUERY, viewModel.getQuery());
 	}
 
 	@Override
@@ -55,21 +64,23 @@ public class SearchResultActivity extends BaseActivity {
 		if (Intent.ACTION_SEARCH.equals(intentAction) || GMS_ACTION_SEARCH.equals(intentAction)) {
 			// Normal search, results are displayed here
 			String query = intent.getStringExtra(SearchManager.QUERY);
-			if (query != null) {
+			if (query == null) {
+				query = "";
+			} else {
 				query = query.trim();
 			}
-			if ((query == null) || (query.length() < MIN_SEARCH_LENGTH)) {
-				MessageDialogFragment.newInstance(R.string.error_title, R.string.search_length_error).show(getSupportFragmentManager());
-				return;
-			}
-
-			currentQuery = query;
 			if (searchView != null) {
 				setSearchViewQuery(query);
 			}
 
-			SearchResultListFragment f = SearchResultListFragment.newInstance(query);
-			getSupportFragmentManager().beginTransaction().replace(R.id.content, f).commit();
+			viewModel.setQuery(query);
+
+			if (SearchViewModel.isQueryTooShort(query)) {
+				SpannableString errorMessage = new SpannableString(getString(R.string.search_length_error));
+				int textColor = ContextCompat.getColor(this, R.color.error_material);
+				errorMessage.setSpan(new ForegroundColorSpan(textColor), 0, errorMessage.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+				Snackbar.make(findViewById(R.id.content), errorMessage, Snackbar.LENGTH_LONG).show();
+			}
 
 		} else if (Intent.ACTION_VIEW.equals(intentAction)) {
 			// Search suggestion, dispatch to EventDetailsActivity
@@ -93,7 +104,7 @@ public class SearchResultActivity extends BaseActivity {
 		searchView = (SearchView) searchMenuItem.getActionView();
 		searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 		searchView.setIconifiedByDefault(false); // Always show the search view
-		setSearchViewQuery(currentQuery);
+		setSearchViewQuery(viewModel.getQuery());
 
 		return true;
 	}
@@ -107,12 +118,8 @@ public class SearchResultActivity extends BaseActivity {
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case android.R.id.home:
-				finish();
-				return true;
-		}
-		return false;
+	public boolean onSupportNavigateUp() {
+		finish();
+		return true;
 	}
 }

@@ -2,23 +2,25 @@ package at.linuxtage.companion.fragments;
 
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.google.android.material.tabs.TabLayout;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
 import at.linuxtage.companion.R;
-import at.linuxtage.companion.widgets.SlidingTabLayout;
 
 public class LiveFragment extends Fragment implements RecycledViewPoolProvider {
 
 	static class ViewHolder {
 		ViewPager pager;
-		SlidingTabLayout slidingTabs;
+		TabLayout tabs;
 		RecyclerView.RecycledViewPool recycledViewPool;
 	}
 
@@ -31,8 +33,8 @@ public class LiveFragment extends Fragment implements RecycledViewPoolProvider {
 		holder = new ViewHolder();
 		holder.pager = view.findViewById(R.id.pager);
 		holder.pager.setAdapter(new LivePagerAdapter(getChildFragmentManager(), getResources()));
-		holder.slidingTabs = view.findViewById(R.id.sliding_tabs);
-		holder.slidingTabs.setViewPager(holder.pager);
+		holder.tabs = view.findViewById(R.id.tabs);
+		holder.tabs.setupWithViewPager(holder.pager, false);
 		holder.recycledViewPool = new RecyclerView.RecycledViewPool();
 
 		return view;
@@ -87,7 +89,7 @@ public class LiveFragment extends Fragment implements RecycledViewPoolProvider {
 
 		@NonNull
 		@Override
-		public Object instantiateItem(ViewGroup container, int position) {
+		public Object instantiateItem(@NonNull ViewGroup container, int position) {
 			// Allow the non-primary fragments to start as soon as they are visible
 			Fragment f = (Fragment) super.instantiateItem(container, position);
 			f.setUserVisibleHint(true);

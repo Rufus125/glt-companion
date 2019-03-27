@@ -1,28 +1,27 @@
 package at.linuxtage.companion.fragments;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.content.Loader;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.material.tabs.TabLayout;
+
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.lifecycle.Observer;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
 import at.linuxtage.companion.R;
-import at.linuxtage.companion.db.DatabaseManager;
+import at.linuxtage.companion.db.AppDatabase;
 import at.linuxtage.companion.model.Day;
-import at.linuxtage.companion.widgets.SlidingTabLayout;
 
 public class TracksFragment extends Fragment implements RecycledViewPoolProvider, Observer<List<Day>> {
 
@@ -30,7 +29,7 @@ public class TracksFragment extends Fragment implements RecycledViewPoolProvider
 		View contentView;
 		View emptyView;
 		ViewPager pager;
-		SlidingTabLayout slidingTabs;
+		TabLayout tabs;
 		DaysAdapter daysAdapter;
 		RecyclerView.RecycledViewPool recycledViewPool;
 	}
@@ -58,7 +57,7 @@ public class TracksFragment extends Fragment implements RecycledViewPoolProvider
 		holder.contentView = view.findViewById(R.id.content);
 		holder.emptyView = view.findViewById(android.R.id.empty);
 		holder.pager = view.findViewById(R.id.pager);
-		holder.slidingTabs = view.findViewById(R.id.sliding_tabs);
+		holder.tabs = view.findViewById(R.id.tabs);
 		holder.daysAdapter = new DaysAdapter(getChildFragmentManager());
 		holder.recycledViewPool = new RecyclerView.RecycledViewPool();
 
@@ -75,9 +74,8 @@ public class TracksFragment extends Fragment implements RecycledViewPoolProvider
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
-		LiveData<List<Day>> daysLiveData = DatabaseManager.getInstance().getDays();
-		daysLiveData.removeObserver(this);
-		daysLiveData.observe(this, this);
+		AppDatabase.getInstance(getContext()).getScheduleDao().getDays()
+				.observe(getViewLifecycleOwner(), this);
 	}
 
 	@Override
@@ -111,7 +109,7 @@ public class TracksFragment extends Fragment implements RecycledViewPoolProvider
 			holder.emptyView.setVisibility(View.GONE);
 			if (holder.pager.getAdapter() == null) {
 				holder.pager.setAdapter(holder.daysAdapter);
-				holder.slidingTabs.setViewPager(holder.pager);
+				holder.tabs.setupWithViewPager(holder.pager);
 			}
 			if (savedCurrentPage != -1) {
 				holder.pager.setCurrentItem(Math.min(savedCurrentPage, totalPages - 1), false);
@@ -152,7 +150,7 @@ public class TracksFragment extends Fragment implements RecycledViewPoolProvider
 
 		@NonNull
 		@Override
-		public Object instantiateItem(ViewGroup container, int position) {
+		public Object instantiateItem(@NonNull ViewGroup container, int position) {
 			// Allow the non-primary fragments to start as soon as they are visible
 			Fragment f = (Fragment) super.instantiateItem(container, position);
 			f.setUserVisibleHint(true);

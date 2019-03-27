@@ -9,7 +9,7 @@ import android.view.MenuItem;
 import android.widget.AbsListView;
 import android.widget.AbsListView.MultiChoiceModeListener;
 import at.linuxtage.companion.R;
-import at.linuxtage.companion.db.DatabaseManager;
+import at.linuxtage.companion.db.AppDatabase;
 
 /**
  * Context menu for the bookmarks list items, available for API 11+ only.
@@ -78,7 +78,7 @@ public class BookmarksMultiChoiceModeListener implements MultiChoiceModeListener
 
 		@Override
 		protected Void doInBackground(long[]... params) {
-			DatabaseManager.getInstance().removeBookmarks(params[0]);
+			//AppDatabase.getInstance().removeBookmarks(params[0]);
 			return null;
 		}
 

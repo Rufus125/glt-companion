@@ -1,8 +1,7 @@
 package at.linuxtage.companion.model;
 
-import android.support.annotation.ColorRes;
-import android.support.annotation.StringRes;
-
+import androidx.annotation.ColorRes;
+import androidx.annotation.StringRes;
 import at.linuxtage.companion.R;
 
 public enum RoomStatus {
