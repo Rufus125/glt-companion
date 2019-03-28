@@ -120,7 +120,7 @@
     <string name="no_data">Keine Daten vorhanden.</string>
     <string name="volunteer">Helfer</string>
     <string name="about">Über</string>
-   <string name="about_text">Von <a href="http://flo.cx">Florian Klien</a> und Georg Schlagholz adaptiert und zur Verfügung gestellt.
+   <string name="about_text">Von <a href="https://flo.cx">Florian Klien</a> und Georg Schlagholz adaptiert und zur Verfügung gestellt.
 \nDer Quellcode ist auf <a href="https://github.com/linuxtage/glt-companion">GitHub</a> verfügbar und steht unter einer Apache 2.0 Lizenz.\n
 \nBasiert auf dem <a href="https://github.com/cbeyls/fosdem-companion-android">FOSDEM Companion</a> von <a href="http://www.digitalia.be/">Christophe Beyls</a>.
 \n\n<small>Diese Anwendung verwendet die folgenden Bibliotheken:
