@@ -38,9 +38,9 @@ public class GLTUrls {
 		return ROOMS_URL;
 	}
 
-	public static String getEvent(String slug, int year) {
+	/*public static String getEvent(String slug, int year) {
 		return String.format(Locale.US, EVENT_URL_FORMAT, year-2000, slug);
-	}
+	}*/
 
 	public static String getPerson(String slug, int year) {
 		return String.format(Locale.US, PERSON_URL_FORMAT, year-2000, slug);

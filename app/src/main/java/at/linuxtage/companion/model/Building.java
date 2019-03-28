@@ -4,7 +4,7 @@ import android.text.TextUtils;
 
 public enum Building {
 	J, K, H, U, AW, Unknown;
-
+//TODO mapping of Building to room for GLT
 	public static Building fromRoomName(String roomName) {
 		if (!TextUtils.isEmpty(roomName)) {
 			switch (Character.toUpperCase(roomName.charAt(0))) {

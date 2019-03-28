@@ -27,6 +27,7 @@ public class Event implements Parcelable {
 	@ColumnInfo(name = "room_name")
 	private String roomName;
 	private String slug;
+	private String url;
 	private String title;
 	@ColumnInfo(name = "subtitle")
 	private String subTitle;
@@ -105,9 +106,17 @@ public class Event implements Parcelable {
 		this.slug = slug;
 	}
 
-	public String getUrl() {
-		return GLTUrls.getEvent(slug, DateUtils.getYear(getDay().getDate().getTime()));
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+		this.url = url;
 	}
+
+	/*public String getUrl() {
+		return GLTUrls.getEvent(slug, DateUtils.getYear(getDay().getDate().getTime()));
+	}*/
 
 	public String getTitle() {
 		return title;

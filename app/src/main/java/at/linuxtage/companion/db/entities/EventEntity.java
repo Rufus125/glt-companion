@@ -33,6 +33,7 @@ public class EventEntity {
 	@ColumnInfo(name = "room_name")
 	private final String roomName;
 	private final String slug;
+	private final String url;
 	@ColumnInfo(name = "track_id")
 	private final long trackId;
 	@ColumnInfo(name = "abstract")
@@ -41,17 +42,18 @@ public class EventEntity {
 
 	public EventEntity(Event event) {
 		this(event.getId(), event.getDay().getIndex(), event.getStartTime(), event.getEndTime(), event.getRoomName(),
-				event.getSlug(), event.getTrack().getId(), event.getAbstractText(), event.getDescription());
+				event.getSlug(), event.getUrl(), event.getTrack().getId(), event.getAbstractText(), event.getDescription());
 	}
 
 	public EventEntity(long id, int dayIndex, Date startTime, Date endTime, String roomName,
-					   String slug, long trackId, String abstractText, String description) {
+					   String slug, String url, long trackId, String abstractText, String description) {
 		this.id = id;
 		this.dayIndex = dayIndex;
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.roomName = roomName;
 		this.slug = slug;
+		this.url= url;
 		this.trackId = trackId;
 		this.abstractText = abstractText;
 		this.description = description;
@@ -81,6 +83,9 @@ public class EventEntity {
 		return slug;
 	}
 
+	public String getUrl() {
+		return url;
+	}
 	public long getTrackId() {
 		return trackId;
 	}

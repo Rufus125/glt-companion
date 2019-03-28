@@ -16,15 +16,17 @@ public class Track implements Parcelable {
 	public static final String TABLE_NAME = "tracks";
 
 	public enum Type {
-		workshop(R.string.workshop, R.color.track_type_other, R.color.track_type_other_dark),
-        discussion(R.string.discussion, R.color.track_type_other, R.color.track_type_other_dark),
-        lecture(R.string.lecture, R.color.track_type_other, R.color.track_type_other_dark),
-        lightning_talk(R.string.lightning_talk, R.color.track_type_lightning_talk, R.color.track_type_lightning_talk_dark),
+		Workshop(R.string.workshop, R.color.track_type_other, R.color.track_type_other_dark),
+        Vortrag(R.string.lecture, R.color.track_type_main, R.color.track_type_main_dark),
+        Prüfung(R.string.certification_exam, R.color.track_type_certification_exam, R.color.track_type_certification_exam_dark),
+
+        discussion(R.string.discussion, R.color.track_type_developer_room, R.color.track_type_developer_room_dark),
         exam(R.string.exam, R.color.track_type_certification_exam, R.color.track_type_certification_exam_dark),
 		other(R.string.other, R.color.track_type_other, R.color.track_type_other_dark),
 		keynote(R.string.keynote, R.color.track_type_keynote, R.color.track_type_keynote_dark),
-		lightningtalk(R.string.lightning_talk, R.color.track_type_lightning_talk, R.color.track_type_lightning_talk_dark),
-		certification(R.string.certification_exam, R.color.track_type_certification_exam, R.color.track_type_certification_exam_dark);
+        lightning_talk(R.string.lightning_talk, R.color.track_type_lightning_talk, R.color.track_type_lightning_talk_dark),
+		lightningtalk(R.string.lightning_talk, R.color.track_type_lightning_talk, R.color.track_type_lightning_talk_dark);
+
 
 		private final int nameResId;
 		private final int colorResId;

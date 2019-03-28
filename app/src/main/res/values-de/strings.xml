@@ -54,7 +54,7 @@
     <!--<string name="main_track">Main track</string> -->
     <!--<string name="developer_room">Developer room</string> -->
     <string name="lightning_talk">Lightning Talk</string>
-    <!--<string name="certification_exam">Certification Exam</string> -->
+    <string name="certification_exam">Certification Exam</string>
 
     <!-- Search -->
     <string name="search_events">Veranstaltungen suchen</string>
@@ -116,7 +116,7 @@
 
     <!-- Others -->
     <string name="room_map">Raumplan</string>
-    <string name="directions">Wegbeschreibung zur FH Joanneum</string>
+    <string name="directions">Wegbeschreibung zur TU Graz</string>
     <string name="no_data">Keine Daten vorhanden.</string>
     <string name="volunteer">Helfer</string>
     <string name="about">Über</string>
