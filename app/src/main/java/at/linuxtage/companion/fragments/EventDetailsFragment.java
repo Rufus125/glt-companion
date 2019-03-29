@@ -232,7 +232,7 @@ public class EventDetailsFragment extends Fragment {
 		Intent intent = new Intent(Intent.ACTION_EDIT);
 		intent.setType("vnd.android.cursor.item/event");
 		intent.putExtra(CalendarContract.Events.TITLE, event.getTitle());
-		intent.putExtra(CalendarContract.Events.EVENT_LOCATION, "TU Graz Inffeldgasse - " + event.getRoomName());
+		intent.putExtra(CalendarContract.Events.EVENT_LOCATION, "TU Graz, Inffeldgasse - " + event.getRoomName());
 		String description = event.getAbstractText();
 		if (TextUtils.isEmpty(description)) {
 			description = event.getDescription();
