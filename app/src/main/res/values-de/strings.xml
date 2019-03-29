@@ -3,6 +3,7 @@
     <string name="app_name">GLT Begleiter</string>
 
     <!-- Main screen -->
+    <string name="unknown">Unbekannt</string>
     <string name="main_menu">Hauptmenü</string>
     <string name="day_no">Tag %1$d</string>
     <string name="close_menu">Menü schließen</string>
