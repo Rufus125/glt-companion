@@ -14,6 +14,7 @@
     <string name="events_download_up_to_date">Database is already up-to-date</string>
     <string name="events_download_empty">No new events found</string>
     <string name="unknown">Unknown</string>
+    <string name="about">About</string>
     <plurals name="events_download_completed">
         <item quantity="one">Completed downloading %1$d event</item>
         <item quantity="other">Completed downloading %1$d events</item>
@@ -73,6 +74,8 @@
     <string name="external_bookmarks_title">Your friend\'s bookmarks</string>
 
     <!-- Errors -->
+    <string name="error_title">Error</string>
+    <string name="settings_notifications_delay_summary">Time between reminder and start of the event</string>
     <string name="event_not_found_error">Unable to load the session details.\nMake sure the database has been updated to the latest version.</string>
     <string name="schedule_loading_error">An error occurred while updating the schedule. Please try again later.</string>
     <string name="search_length_error">The minimum search text length is 3 chars.</string>
