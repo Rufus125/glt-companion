@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/Rufus125/glt-companion.svg?branch=master)](https://travis-ci.org/pestrada/android-tdd-playground)
+
 # GLT Companion
 
 This is the schedule browser for the "[Grazer Linuxtage](https://linuxtage.at)" conference in Graz, Austria.
