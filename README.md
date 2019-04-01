@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/Rufus125/glt-companion.svg?branch=master)](https://travis-ci.org/pestrada/android-tdd-playground)
+[![Build Status](https://travis-ci.org/linuxtage/glt-companion.svg?branch=master)](https://travis-ci.org/linuxtage/glt-companion)
 
 # GLT Companion
 
