@@ -27,7 +27,7 @@ public class EventsParser extends IterableAbstractPullParser<DetailedEvent> {
 
 	private final DateFormat DATE_FORMAT = DateUtils.withAustrianTimeZone(new SimpleDateFormat("yyyy-MM-dd", Locale.US));
 
-	// Calendar used to compute the events time, according to Belgium timezone
+    // Calendar used to compute the events time, according to Austrian timezone
 	private final Calendar calendar = Calendar.getInstance(DateUtils.getAustriaTimeZone(), Locale.US);
 
 	private Day currentDay;
