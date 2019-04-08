@@ -25,7 +25,7 @@ public class LiveViewModel extends AndroidViewModel {
 			new Function<Long, LiveData<PagedList<StatusEvent>>>() {
 				@Override
 				public LiveData<PagedList<StatusEvent>> apply(Long version) {
-					final long now = System.currentTimeMillis() + 3600000;
+					final long now = System.currentTimeMillis();
 					return new LivePagedListBuilder<>(appDatabase.getScheduleDao().getEventsWithStartTime(now, now + NEXT_EVENTS_INTERVAL), 20)
 							.build();
 				}
@@ -34,7 +34,7 @@ public class LiveViewModel extends AndroidViewModel {
 			new Function<Long, LiveData<PagedList<StatusEvent>>>() {
 				@Override
 				public LiveData<PagedList<StatusEvent>> apply(Long version) {
-					final long now = System.currentTimeMillis() + 3600000;
+					final long now = System.currentTimeMillis();
 					return new LivePagedListBuilder<>(appDatabase.getScheduleDao().getEventsInProgress(now), 20)
 							.build();
 				}
