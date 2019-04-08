@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 
 public class DateUtils {
 
-	private static final TimeZone AUSTRIA_TIME_ZONE = TimeZone.getTimeZone("GMT+1");
+	private static final TimeZone AUSTRIA_TIME_ZONE = TimeZone.getTimeZone("Europe/Vienna");
 
 	public static TimeZone getAustriaTimeZone() {
 		return AUSTRIA_TIME_ZONE;
