@@ -15,8 +15,8 @@ android {
         applicationId "at.linuxtage.companion"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 1700001
-        versionName "1.7.0"
+        versionCode 1700002
+        versionName "1.7.1"
         // Supported languages
         resConfigs "en"
         vectorDrawables.useSupportLibrary = true

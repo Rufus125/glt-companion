@@ -72,6 +72,7 @@ public enum Building {
                     building = I102OG;
                     break;
 
+                case "Foy25d":
                 case "i3":
                 case "i4":
                     building = I25dEG;
@@ -91,10 +92,12 @@ public enum Building {
                     building = I16bK;
                     break;
 
+                case "Foy12":
                 case "i2":
                     building = I12EG;
                     break;
 
+                case "Foy18":
                 case "i1":
                     building = I18EG;
                     break;
