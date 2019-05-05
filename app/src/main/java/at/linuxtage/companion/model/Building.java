@@ -5,7 +5,27 @@ import android.text.TextUtils;
 import at.linuxtage.companion.R;
 
 public enum Building {
-    I12("Inffeldgasse 12"), Unknown("Unknown"), I18EG("Inffeldgasse 16a EG"), I25fEG("Inffeldgasse 25f EG"), I10("Inffeldgasse 10"), I25d("Inffeldgasse 25d"), I251OG("Inffeldgasse 25 1. OG"), I12EG("Inffeldgasse 12"), I16bK("Inffeldgasse 16b Keller"), I18("Inffeldgasse 18");
+    Unknown("Unknown"),
+    I10("Inffeldgasse 10"),
+    I101OG("Inffeldgasse 10 1. OG"),
+    I102OG("Inffeldgasse 10 2. OG"),
+
+    I12EG("Inffeldgasse 12 EG"),
+    I121OG("Inffeldgasse 12 1. OG"),
+
+    I16aEG("Inffeldgasse 16a EG"),
+
+    I16bK("Inffeldgasse 16b Keller"),
+
+    I18EG("Inffeldgasse 18 EG"),
+    I18K("Inffeldgasse 18 Keller"),
+
+
+    I25dEG("Inffeldgasse 25d EG"),
+    I25d1OG("Inffeldgasse 25d 1. OG"),
+    I25fEG("Inffeldgasse 25f EG");
+
+
     private final String name;
 
     Building(String name) {
@@ -26,56 +46,69 @@ public enum Building {
         Building building = Unknown;
         if (!TextUtils.isEmpty(roomName)) {
             switch (roomName) {
-                case "HF01092":
-                    building = I12;
+                case "IFEG042":
+                case "ifeg042":
+                    building = I16aEG;
                     break;
 
-                case "HSTP056J":
-                case "i1":
-                case "HSEG058J":
-                case "IFEG042":
-                    building = I18EG;
+                case "HF01092":
+                case "hf01092":
+                    building = I121OG;
                     break;
+
 
                 case "MFEG210":
+                case "mfeg210":
                     building = I25fEG;
                     break;
 
                 case "SZ01070":
-                case "SZ02053":
-                    building = I10;
+                case "sz01070":
+                    building = I101OG;
                     break;
 
+                case "SZ02053":
+                case "sz02053":
+                    building = I102OG;
+                    break;
+
+                case "Foy25d":
                 case "i3":
                 case "i4":
+                    building = I25dEG;
+                    break;
                 case "i5":
                 case "i6":
-                    building = I25d;
+                case "i7":
+                    building = I25d1OG;
                     break;
 
                 case "i11":
-                case "ICK1002H":
+//                case "ICK1002H":
                 case "i12":
-                case "ICK1130H":
+//                case "ICK1130H":
                 case "i13":
-                case "ICK1120H":
+//                case "ICK1120H":
                     building = I16bK;
+                    break;
+
+                case "Foy12":
+                case "i2":
+                    building = I12EG;
+                    break;
+
+                case "Foy18":
+                case "i1":
+                    building = I18EG;
                     break;
 
                 case "i14":
                 case "i15":
-                    building = I18;
-                    break;
-
-
-                case "i2":
-                case "HFEG038J":
-                    building = I12EG;
-                    break;
-
-                case "i7":
-                case "MD01168F":
-                    building = I251OG;
+                case "HSTP056J":
+                case "hstp056j":
+                case "HSTP056":
+                case "hstp056":
+                    building = I18K;
                     break;
             }
         }
