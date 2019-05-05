@@ -3,7 +3,6 @@ package at.linuxtage.companion.api;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.format.DateUtils;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import at.linuxtage.companion.model.Day;
