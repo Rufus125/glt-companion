@@ -2,10 +2,15 @@ package at.linuxtage.companion.api;
 
 import android.content.Context;
 import android.os.AsyncTask;
+
 import androidx.annotation.MainThread;
 import androidx.annotation.WorkerThread;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import at.linuxtage.companion.db.AppDatabase;
 import at.linuxtage.companion.db.ScheduleDao;
 import at.linuxtage.companion.livedata.SingleEvent;
@@ -13,11 +18,8 @@ import at.linuxtage.companion.model.DetailedEvent;
 import at.linuxtage.companion.model.DownloadScheduleResult;
 import at.linuxtage.companion.model.RoomStatus;
 import at.linuxtage.companion.parsers.EventsParser;
-import at.linuxtage.companion.utils.HttpUtils;
-
-import java.io.InputStream;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import at.linuxtage.companion.utils.network.HttpUtils;
+import okio.BufferedSource;
 
 /**
  * Main API entry point.
@@ -59,15 +61,15 @@ public class GLTApi {
 					GLTUrls.getSchedule(AppDatabase.getInstance(context).getYear()),
 					scheduleDao.getLastModifiedTag(),
 					progress::postValue);
-			if (httpResult.inputStream == null) {
+            if (httpResponse.source == null) {
 				// Nothing to parse, the result is up-to-date.
 				res = DownloadScheduleResult.upToDate();
 				return;
 			}
 
-			try (InputStream is = httpResult.inputStream) {
-				Iterable<DetailedEvent> events = new EventsParser().parse(is);
-				int count = scheduleDao.storeSchedule(events, httpResult.lastModified);
+            try (BufferedSource source = httpResponse.source) {
+                Iterable<DetailedEvent> events = new EventsParser().parse(source);
+                int count = scheduleDao.storeSchedule(events, httpResponse.lastModified);
 				res = DownloadScheduleResult.success(count);
 			}
 
@@ -79,7 +81,8 @@ public class GLTApi {
 			result.postValue(new SingleEvent<>(res));
 		}
 	}
-	/**
+
+    /**
 	 * @return The current schedule download progress:
 	 * -1   : in progress, indeterminate
 	 * 0..99: progress value
@@ -104,5 +107,4 @@ public class GLTApi {
 		}
 		return roomStatuses;
 	}
-
 }

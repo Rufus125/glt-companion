@@ -9,7 +9,8 @@ import android.text.format.DateUtils;
 import androidx.lifecycle.LiveData;
 import at.linuxtage.companion.model.RoomStatus;
 import at.linuxtage.companion.parsers.RoomStatusesParser;
-import at.linuxtage.companion.utils.HttpUtils;
+import at.linuxtage.companion.utils.network.HttpUtils;
+import okio.BufferedSource;
 
 import java.io.InputStream;
 import java.util.Collections;
@@ -77,8 +78,8 @@ class LiveRoomStatusesLiveData extends LiveData<Map<String, RoomStatus>> {
 
 			@Override
 			protected Map<String, RoomStatus> doInBackground(Void... voids) {
-				try (InputStream is = HttpUtils.get(GLTUrls.getRooms())) {
-					return new RoomStatusesParser().parse(is);
+                try (BufferedSource source = HttpUtils.get(GLTUrls.getRooms())) {
+                    return new RoomStatusesParser().parse(source);
 				} catch (Throwable e) {
 					return null;
 				}
