@@ -1,4 +1,4 @@
-package be.digitalia.fosdem.utils.network;
+package at.linuxtage.companion.utils.network;
 
 import android.os.Build;
 

@@ -57,7 +57,7 @@ public class GLTApi {
 		DownloadScheduleResult res = DownloadScheduleResult.error();
 		try {
 			ScheduleDao scheduleDao = AppDatabase.getInstance(context).getScheduleDao();
-			HttpUtils.HttpResult httpResult = HttpUtils.get(
+			HttpUtils.Response httpResponse = HttpUtils.get(
 					GLTUrls.getSchedule(AppDatabase.getInstance(context).getYear()),
 					scheduleDao.getLastModifiedTag(),
 					progress::postValue);

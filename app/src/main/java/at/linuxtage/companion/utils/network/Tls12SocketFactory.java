@@ -1,4 +1,4 @@
-package be.digitalia.fosdem.utils.network;
+package at.linuxtage.companion.utils.network;
 
 import java.io.IOException;
 import java.net.InetAddress;
